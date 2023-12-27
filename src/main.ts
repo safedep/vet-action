@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import { Vet } from './vet'
 
 /**
  * The main function for the action.
@@ -7,20 +7,25 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const apiKey: string = core.getInput('api-key', {
+      required: false,
+      trimWhitespace: true
+    })
+    const policy: string = core.getInput('policy', {
+      required: false,
+      trimWhitespace: true
+    })
+    const cloudMode: boolean = core.getBooleanInput('cloud', {
+      required: false
+    })
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const vet = new Vet({ apiKey, policy, cloudMode })
+    const report = await vet.run()
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    core.setOutput('report', report)
   } catch (error) {
-    // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
