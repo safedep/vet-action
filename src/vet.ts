@@ -63,6 +63,14 @@ export class Vet {
 
   private async runOnPullRequest(): Promise<void> {
     core.info('Running on pull request event')
+
+    // Find changed files
+    const changedFiles = await this.pullRequestGetChangedFiles()
+    core.info(`Found ${changedFiles.length} changed files`)
+
+    // Filter by lockfiles
+    // Generate exceptions using original files
+    // Run vet on changed files with exceptions
   }
 
   private async runOnSchedule(): Promise<void> {
@@ -75,7 +83,7 @@ export class Vet {
     }
 
     const vetBinaryVersion = await this.getVetBinaryVersion()
-    core.info(`Vet binary version is ${vetBinaryVersion}`)
+    core.info(`vet binary version is ${vetBinaryVersion}`)
   }
 
   private async getVetBinaryVersion(): Promise<string> {

@@ -28718,6 +28718,12 @@ class Vet {
     }
     async runOnPullRequest() {
         core.info('Running on pull request event');
+        // Find changed files
+        const changedFiles = await this.pullRequestGetChangedFiles();
+        core.info(`Found ${changedFiles.length} changed files`);
+        // Filter by lockfiles
+        // Generate exceptions using original files
+        // Run vet on changed files with exceptions
     }
     async runOnSchedule() {
         core.info('Running on schedule event');
@@ -28727,7 +28733,7 @@ class Vet {
             throw new Error('vet binary not found');
         }
         const vetBinaryVersion = await this.getVetBinaryVersion();
-        core.info(`Vet binary version is ${vetBinaryVersion}`);
+        core.info(`vet binary version is ${vetBinaryVersion}`);
     }
     async getVetBinaryVersion() {
         let output = '';
