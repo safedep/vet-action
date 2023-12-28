@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import fs from 'node:fs'
 import { Vet } from './vet'
 
 /**
@@ -19,10 +20,15 @@ export async function run(): Promise<void> {
       required: false
     })
 
+    const eventName = process.env.GITHUB_EVENT_NAME as string
+    const eventJson = JSON.parse(
+      fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
+    )
+
     core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
 
     const vet = new Vet({ apiKey, policy, cloudMode })
-    const report = await vet.run()
+    const report = await vet.run(eventName, eventJson)
 
     core.setOutput('report', report)
   } catch (error) {

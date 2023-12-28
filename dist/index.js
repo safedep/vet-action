@@ -28592,9 +28592,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const vet_1 = __nccwpck_require__(1286);
 /**
  * The main function for the action.
@@ -28613,9 +28617,11 @@ async function run() {
         const cloudMode = core.getBooleanInput('cloud', {
             required: false
         });
+        const eventName = process.env.GITHUB_EVENT_NAME;
+        const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`);
         const vet = new vet_1.Vet({ apiKey, policy, cloudMode });
-        const report = await vet.run();
+        const report = await vet.run(eventName, eventJson);
         core.setOutput('report', report);
     }
     catch (error) {
@@ -28662,7 +28668,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Vet = void 0;
 const core = __importStar(__nccwpck_require__(2186));
-const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const exec = __nccwpck_require__(1514);
 const tc = __nccwpck_require__(7784);
@@ -28673,8 +28678,9 @@ class Vet {
         this.config = config;
         this.vetBinaryPath = '';
     }
-    // Run vet, generate SARIF report and return the path to the report
-    async run() {
+    // Run vet, generate SARIF report and return the path to the report if
+    // applicable. If the report is not applicable, return an empty string.
+    async run(eventType, event) {
         core.info('Running vet service');
         const vetBinaryUrl = await this.getLatestRelease();
         core.info(`Downloading vet binary from ${vetBinaryUrl}`);
@@ -28684,27 +28690,50 @@ class Vet {
         const vetBinaryFile = path_1.default.join(vetBinaryDir, 'vet');
         core.info(`Running vet binary from ${vetBinaryFile}`);
         this.vetBinaryPath = vetBinaryFile;
-        const vetBinaryVersion = await this.getVetBinaryVersion();
-        core.info(`vet binary version is ${vetBinaryVersion}`);
-        const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-        const event = process.env.GITHUB_EVENT_NAME;
-        if (event === 'pull_request') {
-            await this.runOnPullRequest();
-        }
-        else if (event === 'push') {
-            await this.runOnPush();
+        await this.verifyVetBinary();
+        if (this.config.apiKey) {
+            core.info('Using an API key');
+            process.env.VET_API_KEY = this.config.apiKey;
         }
         else {
-            throw new Error(`Unsupported event type: ${event}`);
+            core.info('Using community mode for API access');
+            process.env.VET_COMMUNITY_MODE = 'true';
+        }
+        if (eventType === 'push') {
+            this.runOnPush();
+        }
+        else if (eventType === 'schedule') {
+            this.runOnSchedule();
+        }
+        else if (eventType === 'pull_request') {
+            this.runOnPullRequest();
+        }
+        else {
+            throw new Error(`Unsupported event type: ${eventType}`);
         }
         return new Date().toTimeString();
+    }
+    async runOnPush() {
+        core.info('Running on push event');
+    }
+    async runOnPullRequest() {
+        core.info('Running on pull request event');
+        // Find changed files
+        const changedFiles = await this.pullRequestGetChangedFiles();
+        core.info(`Found ${changedFiles.length} changed files`);
+        // Filter by lockfiles
+        // Generate exceptions using original files
+        // Run vet on changed files with exceptions
+    }
+    async runOnSchedule() {
+        core.info('Running on schedule event');
     }
     async verifyVetBinary() {
         if (!this.vetBinaryPath) {
             throw new Error('vet binary not found');
         }
         const vetBinaryVersion = await this.getVetBinaryVersion();
-        core.info(`Vet binary version is ${vetBinaryVersion}`);
+        core.info(`vet binary version is ${vetBinaryVersion}`);
     }
     async getVetBinaryVersion() {
         let output = '';
@@ -28725,29 +28754,48 @@ class Vet {
         return match[1];
     }
     async getLatestRelease() {
-        // const apiUrl = 'https://api.github.com/repos/{owner}/{repo}/releases/latest'
-        // const owner = 'safedep'
-        // const repo = 'vet'
-        // const response = await axios.get(
-        //   apiUrl.replace('{owner}', owner).replace('{repo}', repo)
-        // )
-        // const latestRelease = response.data
-        // const latestReleaseArtifact = latestRelease.assets.find(
-        //   (asset: any) => asset.name === 'vet_Linux_x86_64.tar.gz'
-        // )
-        // if (!latestReleaseArtifact) {
-        //   throw new Error('No usable artifact found for latest release')
-        // }
-        // return latestReleaseArtifact.browser_download_url
         return 'https://github.com/safedep/vet/releases/download/v1.5.0/vet_Linux_x86_64.tar.gz';
     }
-    async runOnPush() { }
-    async runOnPullRequest() { }
     async downloadBinary(url) {
         return tc.downloadTool(url);
     }
     async extractBinary(tgzPath) {
         return tc.extractTar(tgzPath);
+    }
+    // Checkout the file from the given ref into a temporary file
+    // and return the path to the temporary file
+    async pullRequestCheckoutFileByPath(ref, filePath) {
+        let output = '';
+        const options = {
+            listeners: {
+                stdout: (data) => {
+                    output += data.toString();
+                }
+            },
+            silent: true,
+            ignoreReturnCode: false
+        };
+        const tempFile = await exec.exec('git', ['show', `${ref}:${filePath}`], options);
+        return tempFile;
+    }
+    async pullRequestGetChangedFiles() {
+        let output = '';
+        const options = {
+            listeners: {
+                stdout: (data) => {
+                    output += data.toString();
+                }
+            },
+            silent: true,
+            ignoreReturnCode: false
+        };
+        await exec.exec('git', [
+            'diff',
+            '--name-only',
+            `origin/${process.env.GITHUB_BASE_REF}`,
+            `origin/${process.env.GITHUB_HEAD_REF}`
+        ]);
+        return output.split('\n').map(line => line.trim());
     }
 }
 exports.Vet = Vet;
