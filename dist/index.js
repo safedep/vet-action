@@ -32973,8 +32973,8 @@ class Vet {
     // and return the path to the temporary file
     async pullRequestCheckoutFileByPath(ref, filePath) {
         const response = await this.octokit.rest.repos.getContent({
-            repo: process.env.GITHUB_REPOSITORY,
-            owner: process.env.GITHUB_ACTOR,
+            repo: this.repoName(),
+            owner: this.ownerName(),
             path: filePath,
             ref
         });
@@ -32992,8 +32992,8 @@ class Vet {
         const response = await this.octokit.rest.repos.compareCommits({
             base: process.env.GITHUB_BASE_REF,
             head: process.env.GITHUB_HEAD_REF,
-            repo: process.env.GITHUB_REPOSITORY,
-            owner: process.env.GITHUB_ACTOR
+            repo: this.repoName(),
+            owner: this.ownerName()
         });
         if (response.status !== 200) {
             throw new Error(`Unable to get changed files: ${response.status}`);
@@ -33013,6 +33013,13 @@ class Vet {
                 contents_url: file.contents_url
             };
         });
+    }
+    ownerName() {
+        return process.env.GITHUB_REPOSITORY_OWNER;
+    }
+    repoName() {
+        const repo = process.env.GITHUB_REPOSITORY;
+        return repo.split('/')[1];
     }
 }
 exports.Vet = Vet;

@@ -139,8 +139,8 @@ export class Vet {
     filePath: string
   ): Promise<string> {
     const response = await this.octokit.rest.repos.getContent({
-      repo: process.env.GITHUB_REPOSITORY as string,
-      owner: process.env.GITHUB_ACTOR as string,
+      repo: this.repoName(),
+      owner: this.ownerName(),
       path: filePath,
       ref
     })
@@ -169,8 +169,8 @@ export class Vet {
     const response = await this.octokit.rest.repos.compareCommits({
       base: process.env.GITHUB_BASE_REF as string,
       head: process.env.GITHUB_HEAD_REF as string,
-      repo: process.env.GITHUB_REPOSITORY as string,
-      owner: process.env.GITHUB_ACTOR as string
+      repo: this.repoName(),
+      owner: this.ownerName()
     })
 
     if (response.status !== 200) {
@@ -194,5 +194,14 @@ export class Vet {
         contents_url: file.contents_url
       }
     })
+  }
+
+  private ownerName(): string {
+    return process.env.GITHUB_REPOSITORY_OWNER as string
+  }
+
+  private repoName(): string {
+    const repo = process.env.GITHUB_REPOSITORY as string
+    return repo.split('/')[1]
   }
 }
