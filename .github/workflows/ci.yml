@@ -57,6 +57,8 @@ jobs:
         uses: ./
         with:
           cloud: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print Output
         id: output

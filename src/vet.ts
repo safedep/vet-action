@@ -1,4 +1,6 @@
 import * as core from '@actions/core'
+import { getOctokit } from '@actions/github'
+import { GitHub } from '@actions/github/lib/utils'
 import path from 'path'
 
 const exec = require('@actions/exec')
@@ -11,11 +13,21 @@ interface VetConfig {
   pullRequestComment?: boolean
 }
 
+interface PullRequestFile {
+  sha: string
+  filename: string
+  blob_url: string
+  raw_url: string
+  contents_url: string
+}
+
 export class Vet {
   private vetBinaryPath: string
+  private octokit: InstanceType<typeof GitHub>
 
   constructor(private config: VetConfig) {
     this.vetBinaryPath = ''
+    this.octokit = getOctokit(process.env.GITHUB_TOKEN as string)
   }
 
   // Run vet, generate SARIF report and return the path to the report if
@@ -109,7 +121,7 @@ export class Vet {
   }
 
   private async getLatestRelease(): Promise<string> {
-    return 'https://github.com/safedep/vet/releases/download/v1.5.0/vet_Linux_x86_64.tar.gz'
+    return 'https://github.com/safedep/vet/releases/download/v1.5.4/vet_Linux_x86_64.tar.gz'
   }
 
   private async downloadBinary(url: string): Promise<string> {
@@ -126,45 +138,61 @@ export class Vet {
     ref: string,
     filePath: string
   ): Promise<string> {
-    let output = ''
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          output += data.toString()
-        }
-      },
-      silent: true,
-      ignoreReturnCode: false
+    const response = await this.octokit.rest.repos.getContent({
+      repo: process.env.GITHUB_REPOSITORY as string,
+      owner: process.env.GITHUB_ACTOR as string,
+      path: filePath,
+      ref
+    })
+
+    if (response.status !== 200) {
+      throw new Error(
+        `Unable to get file: ${filePath}@${ref}: ${response.status}`
+      )
     }
 
-    const tempFile = await exec.exec(
-      'git',
-      ['show', `${ref}:${filePath}`],
-      options
+    if (!response.data) {
+      throw new Error('No file contents found in response')
+    }
+
+    const tempFile = path.join(
+      process.env.RUNNER_TEMP as string,
+      `vet-${ref}-${filePath}`.replace(/\//g, '-')
     )
+
+    // TODO: Write content into file
 
     return tempFile
   }
 
-  private async pullRequestGetChangedFiles(): Promise<string[]> {
-    let output = ''
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          output += data.toString()
-        }
-      },
-      silent: true,
-      ignoreReturnCode: false
+  private async pullRequestGetChangedFiles(): Promise<PullRequestFile[]> {
+    const response = await this.octokit.rest.repos.compareCommits({
+      base: process.env.GITHUB_BASE_REF as string,
+      head: process.env.GITHUB_HEAD_REF as string,
+      repo: process.env.GITHUB_REPOSITORY as string,
+      owner: process.env.GITHUB_ACTOR as string
+    })
+
+    if (response.status !== 200) {
+      throw new Error(`Unable to get changed files: ${response.status}`)
     }
 
-    await exec.exec('git', [
-      'diff',
-      '--name-only',
-      `origin/${process.env.GITHUB_BASE_REF}`,
-      `origin/${process.env.GITHUB_HEAD_REF}`
-    ])
+    if (response.data.status !== 'ahead') {
+      throw new Error(`Head is not ahead of Base: ${response.data.status}`)
+    }
 
-    return output.split('\n').map(line => line.trim())
+    if (!response.data.files) {
+      throw new Error('No files found in response')
+    }
+
+    return response.data.files.map(file => {
+      return {
+        sha: file.sha,
+        filename: file.filename,
+        blob_url: file.blob_url,
+        raw_url: file.raw_url,
+        contents_url: file.contents_url
+      }
+    })
   }
 }

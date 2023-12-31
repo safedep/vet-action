@@ -52,6 +52,8 @@ jobs:
     - name: Run vet
       id: vet
       uses: safedep/vet-action@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload SARIF file
       uses: github/codeql-action/upload-sarif@v2
