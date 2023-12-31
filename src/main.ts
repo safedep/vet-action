@@ -28,9 +28,9 @@ export async function run(): Promise<void> {
     core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
 
     const vet = new Vet({ apiKey, policy, cloudMode })
-    const report = await vet.run(eventName, eventJson)
+    const reportPath = await vet.run(eventName, eventJson)
 
-    core.setOutput('report', report)
+    core.setOutput('report', reportPath)
   } catch (error) {
     if (error instanceof Error) core.setFailed(error.message)
   }
