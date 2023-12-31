@@ -140,7 +140,7 @@ export class Vet {
   ): Promise<string> {
     const response = await this.octokit.rest.repos.getContent({
       repo: process.env.GITHUB_REPOSITORY as string,
-      owner: process.env.GITHUB_ACTOR as string,
+      owner: process.env.GITHUB_REPOSITORY_OWNER as string,
       path: filePath,
       ref
     })
@@ -170,7 +170,7 @@ export class Vet {
       base: process.env.GITHUB_BASE_REF as string,
       head: process.env.GITHUB_HEAD_REF as string,
       repo: process.env.GITHUB_REPOSITORY as string,
-      owner: process.env.GITHUB_ACTOR as string
+      owner: process.env.GITHUB_REPOSITORY_OWNER as string
     })
 
     if (response.status !== 200) {
