@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+#npm run lint
+
+# Auto generate and stage bundle
+npm run bundle
+git add dist
+
+docker run --rm --volume "$(git rev-parse --show-toplevel)":/src ghcr.io/zricethezav/gitleaks:latest protect --source /src --verbose --redact --staged

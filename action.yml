@@ -1,23 +1,26 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
+name: SafeDep vet
+description: Run vet as a GitHub Action to vet your dependencies against common OSS Supply Chain attacks
 author: 'Your name or organization here'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: 'heart'
+  icon: 'git-pull-request'
   color: 'red'
 
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
-    required: true
-    default: '1000'
+  api-key:
+    description: API key to use for synchronizing report with SafeDep cloud
+    required: false
+  policy:
+    description: Path to policy file
+    required: false
+  cloud:
+    description: Synchronize configuration, policy and report with SafeDep cloud
+    required: false
+    default: false
 
-# Define your outputs here.
 outputs:
-  time:
-    description: 'Your output description here'
+  report:
+    description: Path to SARIF report for uploading to Github Security tab
 
 runs:
   using: node20
