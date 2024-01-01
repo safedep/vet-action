@@ -32873,6 +32873,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Vet = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
+const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const exec = __nccwpck_require__(1514);
 const tc = __nccwpck_require__(7784);
@@ -32929,6 +32930,8 @@ class Vet {
         const changedFiles = await this.pullRequestGetChangedFiles();
         core.info(`Found ${changedFiles.length} changed files`);
         // Filter by lockfiles
+        const changedLockFiles = changedFiles.filter(file => this.isSupportedLockfile(file.filename));
+        core.info(`Found ${changedLockFiles.length} supported lockfiles`);
         // Generate exceptions using original files
         // Run vet on changed files with exceptions
     }
@@ -32961,7 +32964,7 @@ class Vet {
         return match[1];
     }
     async getLatestRelease() {
-        return 'https://github.com/safedep/vet/releases/download/v1.5.4/vet_Linux_x86_64.tar.gz';
+        return 'https://github.com/safedep/vet/releases/download/v1.5.5/vet_Linux_x86_64.tar.gz';
     }
     async downloadBinary(url) {
         return tc.downloadTool(url);
@@ -32984,14 +32987,14 @@ class Vet {
         if (!response.data) {
             throw new Error('No file contents found in response');
         }
-        const tempFile = path_1.default.join(process.env.RUNNER_TEMP, `vet-${ref}-${filePath}`.replace(/\//g, '-'));
-        // TODO: Write content into file
+        const tempFile = this.tempFilePath();
+        node_fs_1.default.writeFileSync(tempFile, response.data, { encoding: 'base64' });
         return tempFile;
     }
     async pullRequestGetChangedFiles() {
         const response = await this.octokit.rest.repos.compareCommits({
-            base: process.env.GITHUB_BASE_REF,
-            head: process.env.GITHUB_HEAD_REF,
+            base: this.pullRequestBaseRef(),
+            head: this.pullRequestHeadRef(),
             repo: this.repoName(),
             owner: this.ownerName()
         });
@@ -33020,6 +33023,33 @@ class Vet {
     repoName() {
         const repo = process.env.GITHUB_REPOSITORY;
         return repo.split('/')[1];
+    }
+    pullRequestBaseRef() {
+        return process.env.GITHUB_BASE_REF;
+    }
+    pullRequestHeadRef() {
+        return process.env.GITHUB_HEAD_REF;
+    }
+    tempFilePath() {
+        const tempDir = process.env.RUNNER_TEMP;
+        return path_1.default.join(tempDir, `vet-tmp-${Math.random().toString(36)}`);
+    }
+    isSupportedLockfile(filename) {
+        const baseFileName = path_1.default.basename(filename);
+        return this.supportedLockfiles().includes(baseFileName);
+    }
+    supportedLockfiles() {
+        return [
+            'Gemfile.lock',
+            'package-lock.json',
+            'yarn.lock',
+            'Pipfile.lock',
+            'poetry.lock',
+            'go.mod',
+            'pom.xml',
+            'gradle.lockfile',
+            'requirements.txt'
+        ];
     }
 }
 exports.Vet = Vet;

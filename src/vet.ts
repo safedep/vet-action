@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import { getOctokit } from '@actions/github'
 import { GitHub } from '@actions/github/lib/utils'
+import fs from 'node:fs'
 import path from 'path'
 
 const exec = require('@actions/exec')
@@ -81,6 +82,12 @@ export class Vet {
     core.info(`Found ${changedFiles.length} changed files`)
 
     // Filter by lockfiles
+    const changedLockFiles = changedFiles.filter(file =>
+      this.isSupportedLockfile(file.filename)
+    )
+
+    core.info(`Found ${changedLockFiles.length} supported lockfiles`)
+
     // Generate exceptions using original files
     // Run vet on changed files with exceptions
   }
@@ -121,7 +128,7 @@ export class Vet {
   }
 
   private async getLatestRelease(): Promise<string> {
-    return 'https://github.com/safedep/vet/releases/download/v1.5.4/vet_Linux_x86_64.tar.gz'
+    return 'https://github.com/safedep/vet/releases/download/v1.5.5/vet_Linux_x86_64.tar.gz'
   }
 
   private async downloadBinary(url: string): Promise<string> {
@@ -155,20 +162,16 @@ export class Vet {
       throw new Error('No file contents found in response')
     }
 
-    const tempFile = path.join(
-      process.env.RUNNER_TEMP as string,
-      `vet-${ref}-${filePath}`.replace(/\//g, '-')
-    )
-
-    // TODO: Write content into file
+    const tempFile = this.tempFilePath()
+    fs.writeFileSync(tempFile, response.data as any, { encoding: 'base64' })
 
     return tempFile
   }
 
   private async pullRequestGetChangedFiles(): Promise<PullRequestFile[]> {
     const response = await this.octokit.rest.repos.compareCommits({
-      base: process.env.GITHUB_BASE_REF as string,
-      head: process.env.GITHUB_HEAD_REF as string,
+      base: this.pullRequestBaseRef(),
+      head: this.pullRequestHeadRef(),
       repo: this.repoName(),
       owner: this.ownerName()
     })
@@ -203,5 +206,37 @@ export class Vet {
   private repoName(): string {
     const repo = process.env.GITHUB_REPOSITORY as string
     return repo.split('/')[1]
+  }
+
+  private pullRequestBaseRef(): string {
+    return process.env.GITHUB_BASE_REF as string
+  }
+
+  private pullRequestHeadRef(): string {
+    return process.env.GITHUB_HEAD_REF as string
+  }
+
+  private tempFilePath(): string {
+    const tempDir = process.env.RUNNER_TEMP as string
+    return path.join(tempDir, `vet-tmp-${Math.random().toString(36)}`)
+  }
+
+  private isSupportedLockfile(filename: string): boolean {
+    const baseFileName = path.basename(filename)
+    return this.supportedLockfiles().includes(baseFileName)
+  }
+
+  private supportedLockfiles(): string[] {
+    return [
+      'Gemfile.lock',
+      'package-lock.json',
+      'yarn.lock',
+      'Pipfile.lock',
+      'poetry.lock',
+      'go.mod',
+      'pom.xml',
+      'gradle.lockfile',
+      'requirements.txt'
+    ]
   }
 }
