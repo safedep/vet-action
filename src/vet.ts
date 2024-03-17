@@ -257,8 +257,13 @@ export class Vet {
       throw new Error('No file contents found in response')
     }
 
+    const content = Buffer.from(
+      (response.data as { content: string }).content as any,
+      'base64'
+    ).toString()
+
     const tempFile = this.tempFilePath()
-    fs.writeFileSync(tempFile, response.data as any, { encoding: 'base64' })
+    fs.writeFileSync(tempFile, content, { encoding: 'base64' })
 
     return tempFile
   }

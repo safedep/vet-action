@@ -33045,8 +33045,9 @@ class Vet {
         if (!response.data) {
             throw new Error('No file contents found in response');
         }
+        const content = Buffer.from(response.data.content, 'base64').toString();
         const tempFile = this.tempFilePath();
-        node_fs_1.default.writeFileSync(tempFile, response.data, { encoding: 'base64' });
+        node_fs_1.default.writeFileSync(tempFile, content, { encoding: 'base64' });
         return tempFile;
     }
     async pullRequestGetChangedFiles() {
