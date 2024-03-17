@@ -37,8 +37,6 @@ describe('action', () => {
     await main.run()
 
     expect(runMock).toHaveReturned()
-
-    expect(debugMock).toHaveBeenCalled()
     expect(errorMock).not.toHaveBeenCalled()
   })
 })

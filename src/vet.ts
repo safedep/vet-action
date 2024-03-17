@@ -81,15 +81,76 @@ export class Vet {
     const changedFiles = await this.pullRequestGetChangedFiles()
     core.info(`Found ${changedFiles.length} changed files`)
 
-    // Filter by lockfiles
+    // Filter by lockfiles that we support
     const changedLockFiles = changedFiles.filter(file =>
       this.isSupportedLockfile(file.filename)
     )
 
     core.info(`Found ${changedLockFiles.length} supported lockfiles`)
 
-    // Generate exceptions using original files
-    // Run vet on changed files with exceptions
+    // Run vet on each lockfile's baseRef to generate JSON data
+    // This data is required for generating exceptions file for ignoring
+    // all existing packages so that we only scan new packages
+    const jsonDumpDir = path.join(
+      process.env.RUNNER_TEMP as string,
+      'vet-exceptions-json-dump'
+    )
+    for (const file of changedLockFiles) {
+      const tempFile = await this.pullRequestCheckoutFileByPath(
+        this.pullRequestBaseRef(),
+        file.filename
+      )
+
+      const lockfileName = path.basename(file.filename)
+
+      core.info(
+        `Running vet on ${file.filename} as ${lockfileName} for generating exceptions list`
+      )
+
+      const vetArgs = [
+        'scan',
+        '--lockfiles',
+        tempFile,
+        '--lockfile-as',
+        lockfileName,
+        '--json-dump-dir',
+        jsonDumpDir,
+        '--enrich=false'
+      ]
+
+      core.info(`Running vet with command line: ${vetArgs}`)
+      this.runVet(vetArgs)
+    }
+
+    // Generate exceptions for changed lockfiles
+    const exceptionsFileName = path.join(
+      process.env.RUNNER_TEMP as string,
+      'vet-exceptions.yml'
+    )
+
+    this.runVet([
+      'query',
+      '--from',
+      jsonDumpDir,
+      '--exceptions-filter',
+      'true',
+      '--exceptions-generate',
+      exceptionsFileName
+    ])
+
+    core.info(
+      `Generated exceptions for ${changedLockFiles.length} lockfiles from baseRef to ${exceptionsFileName}`
+    )
+
+    // Run vet to scan changed packages only
+    const vetJsonReportPath = path.join(
+      process.env.RUNNER_TEMP as string,
+      'vet-report.json'
+    )
+
+    core.info(`Running vet to generate final report`)
+
+    // TODO
   }
 
   private async runOnSchedule(): Promise<void> {
@@ -127,8 +188,42 @@ export class Vet {
     return match[1]
   }
 
+  private async runVet(
+    args: string[],
+    silent: boolean = true,
+    ignoreReturnCode: boolean = false,
+    matchOutput: boolean = false,
+    matchOutputRegex: string = ''
+  ): Promise<string> {
+    let output = ''
+    const options = {
+      listeners: {
+        stdout: (data: Buffer) => {
+          output += data.toString()
+        }
+      },
+      silent: silent,
+      ignoreReturnCode: ignoreReturnCode
+    }
+
+    let defaultArgs = ['--no-banner']
+    let finalArgs = [...new Set(defaultArgs.concat(args))]
+
+    await exec.exec(this.vetBinaryPath, finalArgs, options)
+
+    if (matchOutput) {
+      const match = output.match(matchOutputRegex)
+      if (!match || !match[1]) {
+        throw new Error(`Output does not match for ${matchOutputRegex}`)
+      }
+    }
+
+    return output
+  }
+
   private async getLatestRelease(): Promise<string> {
-    return 'https://github.com/safedep/vet/releases/download/v1.5.5/vet_Linux_x86_64.tar.gz'
+    // TODO: Use Github API to fetch latest version number
+    return 'https://github.com/safedep/vet/releases/download/v1.5.6/vet_Linux_x86_64.tar.gz'
   }
 
   private async downloadBinary(url: string): Promise<string> {
