@@ -3,6 +3,8 @@ import { getOctokit } from '@actions/github'
 import { GitHub } from '@actions/github/lib/utils'
 import fs from 'node:fs'
 import path from 'path'
+import { getTempFilePath, isGithubRunnerDebug } from './github'
+import { getDefaultVetPolicyFilePath } from './policy'
 
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
@@ -381,8 +383,7 @@ export class Vet {
   }
 
   private tempFilePath(): string {
-    const tempDir = process.env.RUNNER_TEMP as string
-    return path.join(tempDir, `vet-tmp-${Math.random().toString(36)}`)
+    return getTempFilePath()
   }
 
   private isSupportedLockfile(filename: string): boolean {
@@ -405,58 +406,10 @@ export class Vet {
   }
 
   private getDefaultPolicyFilePath(): string {
-    const defaultPolicyTemplate = `
-name: General Purpose OSS Best Practices
-description: |
-  This filter suite contains rules for implementing general purpose OSS
-  consumption best practices for an organization.
-tags:
-  - general
-  - safedep-managed
-filters:
-  - name: critical-or-high-vulns
-    check_type: CheckTypeVulnerability
-    summary: Critical or high risk vulnerabilities were found
-    value: |
-      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
-  - name: low-popularity
-    check_type: CheckTypePopularity
-    summary: Component popularity is low by Github stars count
-    value: |
-      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
-  - name: risky-oss-licenses
-    check_type: CheckTypeLicense
-    summary: Risky OSS license was detected
-    value: |
-      licenses.exists(p, p == "GPL-2.0") ||
-      licenses.exists(p, p == "GPL-2.0-only") ||
-      licenses.exists(p, p == "GPL-3.0") ||
-      licenses.exists(p, p == "GPL-3.0-only") ||
-      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
-  - name: ossf-unmaintained
-    check_type: CheckTypeMaintenance
-    summary: Component appears to be unmaintained
-    value: |
-      scorecard.scores["Maintained"] == 0
-  - name: osv-malware
-    check_type: CheckTypeMalware
-    summary: Malicious (malware) component detected
-    value: |
-      vulns.all.exists(v, v.id.startsWith("MAL-"))
-  - name: ossf-dangerous-workflow
-    check_type: CheckTypeSecurityScorecard
-    summary: Component release pipeline appear to use dangerous workflows
-    value: |
-      scorecard.scores["Dangerous-Workflow"] == 0
-    `
-
-    const policyFile = this.tempFilePath()
-    fs.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' })
-
-    return policyFile
+    return getDefaultVetPolicyFilePath()
   }
 
   private isRunnerDebug(): boolean {
-    return (process.env.RUNNER_DEBUG ?? 'false') !== 'false'
+    return isGithubRunnerDebug()
   }
 }

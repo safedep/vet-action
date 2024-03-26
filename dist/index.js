@@ -32768,6 +32768,40 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 978:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isGithubRunnerDebug = exports.getTempFilePath = exports.GithubAdapter = void 0;
+const github_1 = __nccwpck_require__(5438);
+const path_1 = __importDefault(__nccwpck_require__(1017));
+// Github specific adapters should go here
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+class GithubAdapter {
+    octokit;
+    constructor() {
+        this.octokit = (0, github_1.getOctokit)(process.env.GITHUB_TOKEN);
+    }
+}
+exports.GithubAdapter = GithubAdapter;
+function getTempFilePath() {
+    const tempDir = process.env.RUNNER_TEMP;
+    return path_1.default.join(tempDir, `vet-tmp-${Math.random().toString(36)}`);
+}
+exports.getTempFilePath = getTempFilePath;
+function isGithubRunnerDebug() {
+    return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';
+}
+exports.isGithubRunnerDebug = isGithubRunnerDebug;
+
+
+/***/ }),
+
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -32845,6 +32879,72 @@ exports.run = run;
 
 /***/ }),
 
+/***/ 2601:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getDefaultVetPolicyFilePath = void 0;
+const node_fs_1 = __importDefault(__nccwpck_require__(7561));
+const github_1 = __nccwpck_require__(978);
+function getDefaultVetPolicyFilePath() {
+    const defaultPolicyTemplate = `
+name: General Purpose OSS Best Practices
+description: |
+  This filter suite contains rules for implementing general purpose OSS
+  consumption best practices for an organization.
+tags:
+  - general
+  - safedep-managed
+filters:
+  - name: critical-or-high-vulns
+    check_type: CheckTypeVulnerability
+    summary: Critical or high risk vulnerabilities were found
+    value: |
+      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
+  - name: low-popularity
+    check_type: CheckTypePopularity
+    summary: Component popularity is low by Github stars count
+    value: |
+      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
+  - name: risky-oss-licenses
+    check_type: CheckTypeLicense
+    summary: Risky OSS license was detected
+    value: |
+      licenses.exists(p, p == "GPL-2.0") ||
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only") ||
+      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
+  - name: ossf-unmaintained
+    check_type: CheckTypeMaintenance
+    summary: Component appears to be unmaintained
+    value: |
+      scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
+  - name: ossf-dangerous-workflow
+    check_type: CheckTypeSecurityScorecard
+    summary: Component release pipeline appear to use dangerous workflows
+    value: |
+      scorecard.scores["Dangerous-Workflow"] == 0
+    `;
+    const policyFile = (0, github_1.getTempFilePath)();
+    node_fs_1.default.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' });
+    return policyFile;
+}
+exports.getDefaultVetPolicyFilePath = getDefaultVetPolicyFilePath;
+
+
+/***/ }),
+
 /***/ 1286:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -32882,6 +32982,8 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const path_1 = __importDefault(__nccwpck_require__(1017));
+const github_2 = __nccwpck_require__(978);
+const policy_1 = __nccwpck_require__(2601);
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = __nccwpck_require__(1514);
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -33145,8 +33247,7 @@ class Vet {
         return process.env.GITHUB_HEAD_REF;
     }
     tempFilePath() {
-        const tempDir = process.env.RUNNER_TEMP;
-        return path_1.default.join(tempDir, `vet-tmp-${Math.random().toString(36)}`);
+        return (0, github_2.getTempFilePath)();
     }
     isSupportedLockfile(filename) {
         const baseFileName = path_1.default.basename(filename);
@@ -33166,56 +33267,10 @@ class Vet {
         ];
     }
     getDefaultPolicyFilePath() {
-        const defaultPolicyTemplate = `
-name: General Purpose OSS Best Practices
-description: |
-  This filter suite contains rules for implementing general purpose OSS
-  consumption best practices for an organization.
-tags:
-  - general
-  - safedep-managed
-filters:
-  - name: critical-or-high-vulns
-    check_type: CheckTypeVulnerability
-    summary: Critical or high risk vulnerabilities were found
-    value: |
-      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
-  - name: low-popularity
-    check_type: CheckTypePopularity
-    summary: Component popularity is low by Github stars count
-    value: |
-      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
-  - name: risky-oss-licenses
-    check_type: CheckTypeLicense
-    summary: Risky OSS license was detected
-    value: |
-      licenses.exists(p, p == "GPL-2.0") ||
-      licenses.exists(p, p == "GPL-2.0-only") ||
-      licenses.exists(p, p == "GPL-3.0") ||
-      licenses.exists(p, p == "GPL-3.0-only") ||
-      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
-  - name: ossf-unmaintained
-    check_type: CheckTypeMaintenance
-    summary: Component appears to be unmaintained
-    value: |
-      scorecard.scores["Maintained"] == 0
-  - name: osv-malware
-    check_type: CheckTypeMalware
-    summary: Malicious (malware) component detected
-    value: |
-      vulns.all.exists(v, v.id.startsWith("MAL-"))
-  - name: ossf-dangerous-workflow
-    check_type: CheckTypeSecurityScorecard
-    summary: Component release pipeline appear to use dangerous workflows
-    value: |
-      scorecard.scores["Dangerous-Workflow"] == 0
-    `;
-        const policyFile = this.tempFilePath();
-        node_fs_1.default.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' });
-        return policyFile;
+        return (0, policy_1.getDefaultVetPolicyFilePath)();
     }
     isRunnerDebug() {
-        return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';
+        return (0, github_2.isGithubRunnerDebug)();
     }
 }
 exports.Vet = Vet;
