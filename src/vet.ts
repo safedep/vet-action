@@ -229,7 +229,7 @@ export class Vet {
   }
 
   private async getVetBinaryVersion(): Promise<string> {
-    const output = await this.runVet(['version'])
+    const output = await this.runVet(['version'], true, true)
 
     const match = output.match(/Version: ([0-9\.]+)/)
     if (!match || !match[1]) {

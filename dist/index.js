@@ -33037,7 +33037,7 @@ class Vet {
         core.info(`vet binary version is ${vetBinaryVersion}`);
     }
     async getVetBinaryVersion() {
-        const output = await this.runVet(['version']);
+        const output = await this.runVet(['version'], true, true);
         const match = output.match(/Version: ([0-9\.]+)/);
         if (!match || !match[1]) {
             throw new Error('Unable to determine vet binary version');
