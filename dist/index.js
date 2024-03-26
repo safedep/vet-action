@@ -32824,7 +32824,12 @@ async function run() {
         const eventName = process.env.GITHUB_EVENT_NAME;
         const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`);
-        const vet = new vet_1.Vet({ apiKey, policy, cloudMode });
+        const vet = new vet_1.Vet({
+            apiKey,
+            policy,
+            cloudMode,
+            pullRequestComment: true
+        });
         const reportPath = await vet.run(eventName, eventJson);
         core.setOutput('report', reportPath);
     }
@@ -32968,8 +32973,33 @@ class Vet {
         core.info(`Generated exceptions for ${changedLockFiles.length} lockfiles from baseRef to ${exceptionsFileName}`);
         // Run vet to scan changed packages only
         const vetJsonReportPath = path_1.default.join(process.env.RUNNER_TEMP, 'vet-report.json');
-        core.info(`Running vet to generate final report`);
-        // TODO
+        const vetFinalScanArgs = [
+            'scan',
+            ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
+            '--exceptions',
+            exceptionsFileName,
+            '--json-report',
+            vetJsonReportPath
+        ];
+        core.info(`Running vet to generate final report at ${vetJsonReportPath}`);
+        await this.runVet(vetFinalScanArgs);
+        if (!node_fs_1.default.existsSync(vetJsonReportPath)) {
+            throw new Error(`vet JSON report file not found at ${vetJsonReportPath}`);
+        }
+        core.info(`Generated vet JSON report at ${vetJsonReportPath}`);
+        if (this.config.pullRequestComment) {
+            const reportContent = node_fs_1.default.readFileSync(vetJsonReportPath, {
+                encoding: 'utf-8'
+            });
+            const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\``;
+            core.info('Adding vet report as a comment in the PR');
+            await this.octokit.rest.issues.createComment({
+                repo: this.repoName(),
+                owner: this.ownerName(),
+                issue_number: parseInt(process.env.GITHUB_PR_NUMBER),
+                body: comment
+            });
+        }
     }
     async runOnSchedule() {
         core.info('Running on schedule event');

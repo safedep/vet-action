@@ -149,9 +149,38 @@ export class Vet {
       'vet-report.json'
     )
 
-    core.info(`Running vet to generate final report`)
+    const vetFinalScanArgs = [
+      'scan',
+      ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
+      '--exceptions',
+      exceptionsFileName,
+      '--json-report',
+      vetJsonReportPath
+    ]
 
-    // TODO
+    core.info(`Running vet to generate final report at ${vetJsonReportPath}`)
+    await this.runVet(vetFinalScanArgs)
+
+    if (!fs.existsSync(vetJsonReportPath)) {
+      throw new Error(`vet JSON report file not found at ${vetJsonReportPath}`)
+    }
+
+    core.info(`Generated vet JSON report at ${vetJsonReportPath}`)
+    if (this.config.pullRequestComment) {
+      const reportContent = fs.readFileSync(vetJsonReportPath, {
+        encoding: 'utf-8'
+      })
+
+      const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\``
+
+      core.info('Adding vet report as a comment in the PR')
+      await this.octokit.rest.issues.createComment({
+        repo: this.repoName(),
+        owner: this.ownerName(),
+        issue_number: parseInt(process.env.GITHUB_PR_NUMBER as string),
+        body: comment
+      })
+    }
   }
 
   private async runOnSchedule(): Promise<void> {
