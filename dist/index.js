@@ -32811,10 +32811,6 @@ const vet_1 = __nccwpck_require__(1286);
  */
 async function run() {
     try {
-        const apiKey = core.getInput('api-key', {
-            required: false,
-            trimWhitespace: true
-        });
         const policy = core.getInput('policy', {
             required: false,
             trimWhitespace: true
@@ -32822,11 +32818,15 @@ async function run() {
         const cloudMode = core.getBooleanInput('cloud', {
             required: false
         });
+        const cloudKey = core.getInput('cloud-key', {
+            required: false,
+            trimWhitespace: true
+        });
         const eventName = process.env.GITHUB_EVENT_NAME;
         const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`);
         const vet = new vet_1.Vet({
-            apiKey,
+            apiKey: cloudKey,
             policy,
             cloudMode,
             pullRequestNumber: github_1.context.payload.pull_request?.number,
@@ -32974,35 +32974,39 @@ class Vet {
         ]);
         core.info(`Generated exceptions for ${changedLockFiles.length} lockfiles from baseRef to ${exceptionsFileName}`);
         // Run vet to scan changed packages only
-        const vetJsonReportPath = path_1.default.join(process.env.RUNNER_TEMP, 'vet-report.json');
+        const vetMarkdownReportPath = this.tempFilePath();
+        const policyFilePath = this.getDefaultPolicyFilePath();
+        core.info(`Using default policy from path: ${policyFilePath}`);
         const vetFinalScanArgs = [
             'scan',
             ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
             '--exceptions',
             exceptionsFileName,
-            '--report-json',
-            vetJsonReportPath
+            '--report-markdown-summary',
+            vetMarkdownReportPath,
+            '--filter-suite',
+            policyFilePath
         ];
-        core.info(`Running vet to generate final report at ${vetJsonReportPath}`);
+        core.info(`Running vet to generate final report at ${vetMarkdownReportPath}`);
         await this.runVet(vetFinalScanArgs);
-        if (!node_fs_1.default.existsSync(vetJsonReportPath)) {
-            throw new Error(`vet JSON report file not found at ${vetJsonReportPath}`);
+        if (!node_fs_1.default.existsSync(vetMarkdownReportPath)) {
+            throw new Error(`vet markdown report file not found at ${vetMarkdownReportPath}`);
         }
-        core.info(`Generated vet JSON report at ${vetJsonReportPath}`);
-        // TODO: Need to use marker based approach to find and update PR
+        core.info(`Generated vet markdown report at ${vetMarkdownReportPath}`);
         if (this.config.pullRequestComment) {
-            const reportContent = node_fs_1.default.readFileSync(vetJsonReportPath, {
+            const reportContent = node_fs_1.default.readFileSync(vetMarkdownReportPath, {
                 encoding: 'utf-8'
             });
             const comments = await this.octokit.rest.issues.listComments({
                 repo: this.repoName(),
                 owner: this.ownerName(),
-                issue_number: this.config.pullRequestNumber
+                issue_number: this.config.pullRequestNumber,
+                per_page: 100
             });
             // Check if any comment has marker
             const marker = '<!-- vet-report-pr-comment -->';
             const existingComment = comments.data.find(comment => comment.body?.includes(marker));
-            const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\`\n\n${marker}`;
+            const comment = `${reportContent}\n\n${marker}`;
             core.info('Adding vet report as a comment in the PR');
             if (existingComment) {
                 await this.octokit.rest.issues.updateComment({
@@ -33033,17 +33037,7 @@ class Vet {
         core.info(`vet binary version is ${vetBinaryVersion}`);
     }
     async getVetBinaryVersion() {
-        let output = '';
-        const options = {
-            listeners: {
-                stdout: (data) => {
-                    output += data.toString();
-                }
-            },
-            silent: true,
-            ignoreReturnCode: true
-        };
-        await exec.exec(this.vetBinaryPath, ['--no-banner', 'version'], options);
+        const output = await this.runVet(['version']);
         const match = output.match(/Version: ([0-9\.]+)/);
         if (!match || !match[1]) {
             throw new Error('Unable to determine vet binary version');
@@ -33078,7 +33072,7 @@ class Vet {
     }
     async getLatestRelease() {
         // TODO: Use Github API to fetch latest version number
-        return 'https://github.com/safedep/vet/releases/download/v1.5.6/vet_Linux_x86_64.tar.gz';
+        return 'https://github.com/safedep/vet/releases/download/v1.5.8/vet_Linux_x86_64.tar.gz';
     }
     async downloadBinary(url) {
         return tc.downloadTool(url);
@@ -33167,6 +33161,55 @@ class Vet {
             'gradle.lockfile',
             'requirements.txt'
         ];
+    }
+    getDefaultPolicyFilePath() {
+        const defaultPolicyTemplate = `
+name: General Purpose OSS Best Practices
+description: |
+  This filter suite contains rules for implementing general purpose OSS
+  consumption best practices for an organization.
+tags:
+  - general
+  - safedep-managed
+filters:
+  - name: critical-or-high-vulns
+    check_type: CheckTypeVulnerability
+    summary: Critical or high risk vulnerabilities were found
+    value: |
+      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
+  - name: low-popularity
+    check_type: CheckTypePopularity
+    summary: Component popularity is low by Github stars count
+    value: |
+      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
+  - name: risky-oss-licenses
+    check_type: CheckTypeLicense
+    summary: Risky OSS license was detected
+    value: |
+      licenses.exists(p, p == "GPL-2.0") ||
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only") ||
+      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
+  - name: ossf-unmaintained
+    check_type: CheckTypeMaintenance
+    summary: Component appears to be unmaintained
+    value: |
+      scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
+  - name: ossf-dangerous-workflow
+    check_type: CheckTypeSecurityScorecard
+    summary: Component release pipeline appear to use dangerous workflows
+    value: |
+      scorecard.scores["Dangerous-Workflow"] == 0
+    `;
+        const policyFile = this.tempFilePath();
+        node_fs_1.default.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' });
+        return policyFile;
     }
     isRunnerDebug() {
         return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';

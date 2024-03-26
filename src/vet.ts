@@ -145,39 +145,46 @@ export class Vet {
     )
 
     // Run vet to scan changed packages only
-    const vetJsonReportPath = path.join(
-      process.env.RUNNER_TEMP as string,
-      'vet-report.json'
-    )
+    const vetMarkdownReportPath = this.tempFilePath()
+    const policyFilePath = this.getDefaultPolicyFilePath()
+
+    core.info(`Using default policy from path: ${policyFilePath}`)
 
     const vetFinalScanArgs = [
       'scan',
       ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
       '--exceptions',
       exceptionsFileName,
-      '--report-json',
-      vetJsonReportPath
+      '--report-markdown-summary',
+      vetMarkdownReportPath,
+      '--filter-suite',
+      policyFilePath
     ]
 
-    core.info(`Running vet to generate final report at ${vetJsonReportPath}`)
+    core.info(
+      `Running vet to generate final report at ${vetMarkdownReportPath}`
+    )
+
     await this.runVet(vetFinalScanArgs)
 
-    if (!fs.existsSync(vetJsonReportPath)) {
-      throw new Error(`vet JSON report file not found at ${vetJsonReportPath}`)
+    if (!fs.existsSync(vetMarkdownReportPath)) {
+      throw new Error(
+        `vet markdown report file not found at ${vetMarkdownReportPath}`
+      )
     }
 
-    core.info(`Generated vet JSON report at ${vetJsonReportPath}`)
+    core.info(`Generated vet markdown report at ${vetMarkdownReportPath}`)
 
-    // TODO: Need to use marker based approach to find and update PR
     if (this.config.pullRequestComment) {
-      const reportContent = fs.readFileSync(vetJsonReportPath, {
+      const reportContent = fs.readFileSync(vetMarkdownReportPath, {
         encoding: 'utf-8'
       })
 
       const comments = await this.octokit.rest.issues.listComments({
         repo: this.repoName(),
         owner: this.ownerName(),
-        issue_number: this.config.pullRequestNumber as number
+        issue_number: this.config.pullRequestNumber as number,
+        per_page: 100
       })
 
       // Check if any comment has marker
@@ -186,7 +193,7 @@ export class Vet {
         comment => comment.body?.includes(marker)
       )
 
-      const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\`\n\n${marker}`
+      const comment = `${reportContent}\n\n${marker}`
 
       core.info('Adding vet report as a comment in the PR')
 
@@ -222,18 +229,7 @@ export class Vet {
   }
 
   private async getVetBinaryVersion(): Promise<string> {
-    let output = ''
-    const options = {
-      listeners: {
-        stdout: (data: Buffer) => {
-          output += data.toString()
-        }
-      },
-      silent: true,
-      ignoreReturnCode: true
-    }
-
-    await exec.exec(this.vetBinaryPath, ['--no-banner', 'version'], options)
+    const output = await this.runVet(['version'])
 
     const match = output.match(/Version: ([0-9\.]+)/)
     if (!match || !match[1]) {
@@ -283,7 +279,7 @@ export class Vet {
 
   private async getLatestRelease(): Promise<string> {
     // TODO: Use Github API to fetch latest version number
-    return 'https://github.com/safedep/vet/releases/download/v1.5.6/vet_Linux_x86_64.tar.gz'
+    return 'https://github.com/safedep/vet/releases/download/v1.5.8/vet_Linux_x86_64.tar.gz'
   }
 
   private async downloadBinary(url: string): Promise<string> {
@@ -402,6 +398,58 @@ export class Vet {
       'gradle.lockfile',
       'requirements.txt'
     ]
+  }
+
+  private getDefaultPolicyFilePath(): string {
+    const defaultPolicyTemplate = `
+name: General Purpose OSS Best Practices
+description: |
+  This filter suite contains rules for implementing general purpose OSS
+  consumption best practices for an organization.
+tags:
+  - general
+  - safedep-managed
+filters:
+  - name: critical-or-high-vulns
+    check_type: CheckTypeVulnerability
+    summary: Critical or high risk vulnerabilities were found
+    value: |
+      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
+  - name: low-popularity
+    check_type: CheckTypePopularity
+    summary: Component popularity is low by Github stars count
+    value: |
+      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
+  - name: risky-oss-licenses
+    check_type: CheckTypeLicense
+    summary: Risky OSS license was detected
+    value: |
+      licenses.exists(p, p == "GPL-2.0") ||
+      licenses.exists(p, p == "GPL-2.0-only") ||
+      licenses.exists(p, p == "GPL-3.0") ||
+      licenses.exists(p, p == "GPL-3.0-only") ||
+      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
+  - name: ossf-unmaintained
+    check_type: CheckTypeMaintenance
+    summary: Component appears to be unmaintained
+    value: |
+      scorecard.scores["Maintained"] == 0
+  - name: osv-malware
+    check_type: CheckTypeMalware
+    summary: Malicious (malware) component detected
+    value: |
+      vulns.all.exists(v, v.id.startsWith("MAL-"))
+  - name: ossf-dangerous-workflow
+    check_type: CheckTypeSecurityScorecard
+    summary: Component release pipeline appear to use dangerous workflows
+    value: |
+      scorecard.scores["Dangerous-Workflow"] == 0
+    `
+
+    const policyFile = this.tempFilePath()
+    fs.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' })
+
+    return policyFile
   }
 
   private isRunnerDebug(): boolean {

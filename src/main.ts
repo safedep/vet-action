@@ -9,16 +9,18 @@ import { Vet } from './vet'
  */
 export async function run(): Promise<void> {
   try {
-    const apiKey: string = core.getInput('api-key', {
-      required: false,
-      trimWhitespace: true
-    })
     const policy: string = core.getInput('policy', {
       required: false,
       trimWhitespace: true
     })
+
     const cloudMode: boolean = core.getBooleanInput('cloud', {
       required: false
+    })
+
+    const cloudKey: string = core.getInput('cloud-key', {
+      required: false,
+      trimWhitespace: true
     })
 
     const eventName = process.env.GITHUB_EVENT_NAME as string
@@ -29,7 +31,7 @@ export async function run(): Promise<void> {
     core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
 
     const vet = new Vet({
-      apiKey,
+      apiKey: cloudKey,
       policy,
       cloudMode,
       pullRequestNumber: context.payload.pull_request?.number,
