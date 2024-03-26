@@ -32978,7 +32978,7 @@ class Vet {
             ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
             '--exceptions',
             exceptionsFileName,
-            '--json-report',
+            '--report-json',
             vetJsonReportPath
         ];
         core.info(`Running vet to generate final report at ${vetJsonReportPath}`);
