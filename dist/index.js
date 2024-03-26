@@ -32989,18 +32989,37 @@ class Vet {
             throw new Error(`vet JSON report file not found at ${vetJsonReportPath}`);
         }
         core.info(`Generated vet JSON report at ${vetJsonReportPath}`);
+        // TODO: Need to use marker based approach to find and update PR
         if (this.config.pullRequestComment) {
             const reportContent = node_fs_1.default.readFileSync(vetJsonReportPath, {
                 encoding: 'utf-8'
             });
-            const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\``;
-            core.info('Adding vet report as a comment in the PR');
-            await this.octokit.rest.issues.createComment({
+            const comments = await this.octokit.rest.issues.listComments({
                 repo: this.repoName(),
                 owner: this.ownerName(),
-                issue_number: this.config.pullRequestNumber,
-                body: comment
+                issue_number: this.config.pullRequestNumber
             });
+            // Check if any comment has marker
+            const marker = '<!-- vet-report-pr-comment -->';
+            const existingComment = comments.data.find(comment => comment.body?.includes(marker));
+            const comment = `## Vet Report\n\`\`\`\n${reportContent}\n\`\`\`\n\n${marker}`;
+            core.info('Adding vet report as a comment in the PR');
+            if (existingComment) {
+                await this.octokit.rest.issues.updateComment({
+                    repo: this.repoName(),
+                    owner: this.ownerName(),
+                    comment_id: existingComment.id,
+                    body: comment
+                });
+            }
+            else {
+                await this.octokit.rest.issues.createComment({
+                    repo: this.repoName(),
+                    owner: this.ownerName(),
+                    issue_number: this.config.pullRequestNumber,
+                    body: comment
+                });
+            }
         }
     }
     async runOnSchedule() {
