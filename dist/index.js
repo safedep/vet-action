@@ -33001,7 +33001,7 @@ class Vet {
     }
     async runVet(args, silent = false, ignoreReturnCode = false, matchOutput = false, matchOutputRegex = '') {
         // Override silent flag if we are running in actions debug environment
-        if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
+        if (this.isRunnerDebug()) {
             silent = false;
         }
         let output = '';
@@ -33038,6 +33038,7 @@ class Vet {
     // Checkout the file from the given ref into a temporary file
     // and return the path to the temporary file
     async pullRequestCheckoutFileByPath(ref, filePath) {
+        core.info(`Checking out file: ${filePath}@${ref}`);
         const response = await this.octokit.rest.repos.getContent({
             repo: this.repoName(),
             owner: this.ownerName(),
@@ -33051,8 +33052,9 @@ class Vet {
             throw new Error('No file contents found in response');
         }
         const content = Buffer.from(response.data.content, 'base64').toString();
+        core.debug(`File content: ${content}`);
         const tempFile = this.tempFilePath();
-        node_fs_1.default.writeFileSync(tempFile, content, { encoding: 'base64' });
+        node_fs_1.default.writeFileSync(tempFile, content, { encoding: 'utf-8' });
         return tempFile;
     }
     async pullRequestGetChangedFiles() {
@@ -33114,6 +33116,9 @@ class Vet {
             'gradle.lockfile',
             'requirements.txt'
         ];
+    }
+    isRunnerDebug() {
+        return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';
     }
 }
 exports.Vet = Vet;

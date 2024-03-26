@@ -197,7 +197,7 @@ export class Vet {
     matchOutputRegex: string = ''
   ): Promise<string> {
     // Override silent flag if we are running in actions debug environment
-    if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
+    if (this.isRunnerDebug()) {
       silent = false
     }
 
@@ -246,6 +246,8 @@ export class Vet {
     ref: string,
     filePath: string
   ): Promise<string> {
+    core.info(`Checking out file: ${filePath}@${ref}`)
+
     const response = await this.octokit.rest.repos.getContent({
       repo: this.repoName(),
       owner: this.ownerName(),
@@ -268,8 +270,10 @@ export class Vet {
       'base64'
     ).toString()
 
+    core.debug(`File content: ${content}`)
+
     const tempFile = this.tempFilePath()
-    fs.writeFileSync(tempFile, content, { encoding: 'base64' })
+    fs.writeFileSync(tempFile, content, { encoding: 'utf-8' })
 
     return tempFile
   }
@@ -344,5 +348,9 @@ export class Vet {
       'gradle.lockfile',
       'requirements.txt'
     ]
+  }
+
+  private isRunnerDebug(): boolean {
+    return (process.env.RUNNER_DEBUG ?? 'false') !== 'false'
   }
 }
