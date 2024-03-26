@@ -4,7 +4,10 @@ import { GitHub } from '@actions/github/lib/utils'
 import fs from 'node:fs'
 import path from 'path'
 
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
+
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const tc = require('@actions/tool-cache')
 
 interface VetConfig {
@@ -34,7 +37,8 @@ export class Vet {
 
   // Run vet, generate SARIF report and return the path to the report if
   // applicable. If the report is not applicable, return an empty string.
-  async run(eventType: string, event: string): Promise<string> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async run(eventType: string, _event: string): Promise<string> {
     core.info('Running vet service')
     const vetBinaryUrl = await this.getLatestRelease()
 
@@ -231,7 +235,7 @@ export class Vet {
   private async getVetBinaryVersion(): Promise<string> {
     const output = await this.runVet(['version'], true, true)
 
-    const match = output.match(/Version: ([0-9\.]+)/)
+    const match = output.match(/Version: ([0-9.]+)/)
     if (!match || !match[1]) {
       throw new Error('Unable to determine vet binary version')
     }
@@ -241,10 +245,10 @@ export class Vet {
 
   private async runVet(
     args: string[],
-    silent: boolean = false,
-    ignoreReturnCode: boolean = false,
-    matchOutput: boolean = false,
-    matchOutputRegex: string = ''
+    silent = false,
+    ignoreReturnCode = false,
+    matchOutput = false,
+    matchOutputRegex = ''
   ): Promise<string> {
     // Override silent flag if we are running in actions debug environment
     if (this.isRunnerDebug()) {
@@ -258,12 +262,12 @@ export class Vet {
           output += data.toString()
         }
       },
-      silent: silent,
-      ignoreReturnCode: ignoreReturnCode
+      silent,
+      ignoreReturnCode
     }
 
-    let defaultArgs = ['--no-banner']
-    let finalArgs = [...new Set(defaultArgs.concat(args))]
+    const defaultArgs = ['--no-banner']
+    const finalArgs = [...new Set(defaultArgs.concat(args))]
 
     await exec.exec(this.vetBinaryPath, finalArgs, options)
 
@@ -316,7 +320,7 @@ export class Vet {
     }
 
     const content = Buffer.from(
-      (response.data as { content: string }).content as any,
+      (response.data as { content: string }).content,
       'base64'
     ).toString()
 

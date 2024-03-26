@@ -11,6 +11,7 @@ ignorePatterns:
   - '!.*'
   - '**/node_modules/.*'
   - '**/dist/.*'
+  - '**/__tests__/**/*'
   - '**/coverage/.*'
   - '*.json'
 

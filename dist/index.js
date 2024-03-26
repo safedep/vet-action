@@ -32882,7 +32882,9 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const path_1 = __importDefault(__nccwpck_require__(1017));
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = __nccwpck_require__(1514);
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const tc = __nccwpck_require__(7784);
 class Vet {
     config;
@@ -32895,7 +32897,8 @@ class Vet {
     }
     // Run vet, generate SARIF report and return the path to the report if
     // applicable. If the report is not applicable, return an empty string.
-    async run(eventType, event) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async run(eventType, _event) {
         core.info('Running vet service');
         const vetBinaryUrl = await this.getLatestRelease();
         core.info(`Downloading vet binary from ${vetBinaryUrl}`);
@@ -33038,7 +33041,7 @@ class Vet {
     }
     async getVetBinaryVersion() {
         const output = await this.runVet(['version'], true, true);
-        const match = output.match(/Version: ([0-9\.]+)/);
+        const match = output.match(/Version: ([0-9.]+)/);
         if (!match || !match[1]) {
             throw new Error('Unable to determine vet binary version');
         }
@@ -33056,11 +33059,11 @@ class Vet {
                     output += data.toString();
                 }
             },
-            silent: silent,
-            ignoreReturnCode: ignoreReturnCode
+            silent,
+            ignoreReturnCode
         };
-        let defaultArgs = ['--no-banner'];
-        let finalArgs = [...new Set(defaultArgs.concat(args))];
+        const defaultArgs = ['--no-banner'];
+        const finalArgs = [...new Set(defaultArgs.concat(args))];
         await exec.exec(this.vetBinaryPath, finalArgs, options);
         if (matchOutput) {
             const match = output.match(matchOutputRegex);
