@@ -120,7 +120,7 @@ export class Vet {
       ]
 
       core.info(`Running vet with command line: ${vetArgs}`)
-      this.runVet(vetArgs)
+      await this.runVet(vetArgs)
     }
 
     // Generate exceptions for changed lockfiles
@@ -129,7 +129,7 @@ export class Vet {
       'vet-exceptions.yml'
     )
 
-    this.runVet([
+    await this.runVet([
       'query',
       '--from',
       jsonDumpDir,
@@ -191,12 +191,12 @@ export class Vet {
 
   private async runVet(
     args: string[],
-    silent: boolean = true,
+    silent: boolean = false,
     ignoreReturnCode: boolean = false,
     matchOutput: boolean = false,
     matchOutputRegex: string = ''
   ): Promise<string> {
-    // Override silent flag if we are running in debug environment
+    // Override silent flag if we are running in actions debug environment
     if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
       silent = false
     }

@@ -32952,11 +32952,11 @@ class Vet {
                 '--enrich=false'
             ];
             core.info(`Running vet with command line: ${vetArgs}`);
-            this.runVet(vetArgs);
+            await this.runVet(vetArgs);
         }
         // Generate exceptions for changed lockfiles
         const exceptionsFileName = path_1.default.join(process.env.RUNNER_TEMP, 'vet-exceptions.yml');
-        this.runVet([
+        await this.runVet([
             'query',
             '--from',
             jsonDumpDir,
@@ -32999,8 +32999,8 @@ class Vet {
         }
         return match[1];
     }
-    async runVet(args, silent = true, ignoreReturnCode = false, matchOutput = false, matchOutputRegex = '') {
-        // Override silent flag if we are running in debug environment
+    async runVet(args, silent = false, ignoreReturnCode = false, matchOutput = false, matchOutputRegex = '') {
+        // Override silent flag if we are running in actions debug environment
         if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
             silent = false;
         }
