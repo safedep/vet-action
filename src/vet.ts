@@ -79,14 +79,14 @@ export class Vet {
 
     // Find changed files
     const changedFiles = await this.pullRequestGetChangedFiles()
-    core.info(`Found ${changedFiles.length} changed files`)
+    core.info(`Found ${changedFiles.length} changed file(s)`)
 
     // Filter by lockfiles that we support
     const changedLockFiles = changedFiles.filter(file =>
       this.isSupportedLockfile(file.filename)
     )
 
-    core.info(`Found ${changedLockFiles.length} supported lockfiles`)
+    core.info(`Found ${changedLockFiles.length} supported lockfile(s)`)
 
     // Run vet on each lockfile's baseRef to generate JSON data
     // This data is required for generating exceptions file for ignoring
@@ -96,6 +96,7 @@ export class Vet {
       'vet-exceptions-json-dump'
     )
     for (const file of changedLockFiles) {
+      // TODO: Handle the case where a new lockfile is added or deleted
       const tempFile = await this.pullRequestCheckoutFileByPath(
         this.pullRequestBaseRef(),
         file.filename
@@ -195,6 +196,11 @@ export class Vet {
     matchOutput: boolean = false,
     matchOutputRegex: string = ''
   ): Promise<string> {
+    // Override silent flag if we are running in debug environment
+    if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
+      silent = false
+    }
+
     let output = ''
     const options = {
       listeners: {

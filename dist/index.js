@@ -32928,15 +32928,16 @@ class Vet {
         core.info('Running on pull request event');
         // Find changed files
         const changedFiles = await this.pullRequestGetChangedFiles();
-        core.info(`Found ${changedFiles.length} changed files`);
+        core.info(`Found ${changedFiles.length} changed file(s)`);
         // Filter by lockfiles that we support
         const changedLockFiles = changedFiles.filter(file => this.isSupportedLockfile(file.filename));
-        core.info(`Found ${changedLockFiles.length} supported lockfiles`);
+        core.info(`Found ${changedLockFiles.length} supported lockfile(s)`);
         // Run vet on each lockfile's baseRef to generate JSON data
         // This data is required for generating exceptions file for ignoring
         // all existing packages so that we only scan new packages
         const jsonDumpDir = path_1.default.join(process.env.RUNNER_TEMP, 'vet-exceptions-json-dump');
         for (const file of changedLockFiles) {
+            // TODO: Handle the case where a new lockfile is added or deleted
             const tempFile = await this.pullRequestCheckoutFileByPath(this.pullRequestBaseRef(), file.filename);
             const lockfileName = path_1.default.basename(file.filename);
             core.info(`Running vet on ${file.filename} as ${lockfileName} for generating exceptions list`);
@@ -32999,6 +33000,10 @@ class Vet {
         return match[1];
     }
     async runVet(args, silent = true, ignoreReturnCode = false, matchOutput = false, matchOutputRegex = '') {
+        // Override silent flag if we are running in debug environment
+        if ((process.env.RUNNER_DEBUG ?? 'false') !== 'false') {
+            silent = false;
+        }
         let output = '';
         const options = {
             listeners: {
