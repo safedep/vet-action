@@ -11,6 +11,7 @@ interface VetConfig {
   apiKey?: string
   policy?: string
   cloudMode?: boolean
+  pullRequestNumber?: number
   pullRequestComment?: boolean
 }
 
@@ -177,7 +178,7 @@ export class Vet {
       await this.octokit.rest.issues.createComment({
         repo: this.repoName(),
         owner: this.ownerName(),
-        issue_number: parseInt(process.env.GITHUB_PR_NUMBER as string),
+        issue_number: this.config.pullRequestNumber as number,
         body: comment
       })
     }

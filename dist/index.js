@@ -32802,6 +32802,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
+const github_1 = __nccwpck_require__(5438);
 const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const vet_1 = __nccwpck_require__(1286);
 /**
@@ -32828,6 +32829,7 @@ async function run() {
             apiKey,
             policy,
             cloudMode,
+            pullRequestNumber: github_1.context.payload.pull_request?.number,
             pullRequestComment: true
         });
         const reportPath = await vet.run(eventName, eventJson);
@@ -32996,7 +32998,7 @@ class Vet {
             await this.octokit.rest.issues.createComment({
                 repo: this.repoName(),
                 owner: this.ownerName(),
-                issue_number: parseInt(process.env.GITHUB_PR_NUMBER),
+                issue_number: this.config.pullRequestNumber,
                 body: comment
             });
         }

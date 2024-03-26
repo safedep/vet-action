@@ -1,4 +1,5 @@
 import * as core from '@actions/core'
+import { context } from '@actions/github'
 import fs from 'node:fs'
 import { Vet } from './vet'
 
@@ -31,6 +32,7 @@ export async function run(): Promise<void> {
       apiKey,
       policy,
       cloudMode,
+      pullRequestNumber: context.payload.pull_request?.number,
       pullRequestComment: true
     })
 
