@@ -1,5 +1,7 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import { context } from '@actions/github'
+import fs from 'node:fs'
+import { Vet } from './vet'
 
 /**
  * The main function for the action.
@@ -7,20 +9,38 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const policy: string = core.getInput('policy', {
+      required: false,
+      trimWhitespace: true
+    })
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
+    const cloudMode: boolean = core.getBooleanInput('cloud', {
+      required: false
+    })
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    const cloudKey: string = core.getInput('cloud-key', {
+      required: false,
+      trimWhitespace: true
+    })
 
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
+    const eventName = process.env.GITHUB_EVENT_NAME as string
+    const eventJson = JSON.parse(
+      fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
+    )
+
+    core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
+
+    const vet = new Vet({
+      apiKey: cloudKey,
+      policy,
+      cloudMode,
+      pullRequestNumber: context.payload.pull_request?.number,
+      pullRequestComment: true
+    })
+
+    const reportPath = await vet.run(eventName, eventJson)
+    core.setOutput('report', reportPath)
   } catch (error) {
-    // Fail the workflow run if an error occurs
     if (error instanceof Error) core.setFailed(error.message)
   }
 }
