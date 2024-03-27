@@ -1,22 +1,24 @@
 name: SafeDep vet
-description: Run vet as a GitHub Action to vet your dependencies against common OSS Supply Chain attacks
-author: 'Your name or organization here'
+description:
+  Run vet as a GitHub Action to vet your dependencies against OSS Supply Chain
+  attacks
+author: 'SafeDep'
 
 branding:
   icon: 'git-pull-request'
   color: 'red'
 
 inputs:
-  api-key:
-    description: API key to use for synchronizing report with SafeDep cloud
-    required: false
   policy:
-    description: Path to policy file
+    description: Path to policy file, default policy will be used when not given
     required: false
   cloud:
     description: Synchronize configuration, policy and report with SafeDep cloud
     required: false
     default: false
+  cloud-key:
+    description: API key to use for synchronizing report with SafeDep cloud
+    required: false
 
 outputs:
   report:
