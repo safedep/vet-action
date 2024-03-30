@@ -32768,40 +32768,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 978:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isGithubRunnerDebug = exports.getTempFilePath = exports.GithubAdapter = void 0;
-const github_1 = __nccwpck_require__(5438);
-const path_1 = __importDefault(__nccwpck_require__(1017));
-// Github specific adapters should go here
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-class GithubAdapter {
-    octokit;
-    constructor() {
-        this.octokit = (0, github_1.getOctokit)(process.env.GITHUB_TOKEN);
-    }
-}
-exports.GithubAdapter = GithubAdapter;
-function getTempFilePath() {
-    const tempDir = process.env.RUNNER_TEMP;
-    return path_1.default.join(tempDir, `vet-tmp-${Math.random().toString(36)}`);
-}
-exports.getTempFilePath = getTempFilePath;
-function isGithubRunnerDebug() {
-    return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';
-}
-exports.isGithubRunnerDebug = isGithubRunnerDebug;
-
-
-/***/ }),
-
 /***/ 399:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -32856,12 +32822,17 @@ async function run() {
             required: false,
             trimWhitespace: true
         });
+        const version = core.getInput('version', {
+            required: false,
+            trimWhitespace: true
+        });
         const eventName = process.env.GITHUB_EVENT_NAME;
         const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
-        core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`);
+        core.debug(`Running vet with policy: ${policy.length === 0 ? '<default>' : policy} cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`);
         const vet = new vet_1.Vet({
             apiKey: cloudKey,
             policy,
+            version,
             cloudMode,
             pullRequestNumber: github_1.context.payload.pull_request?.number,
             pullRequestComment: true
@@ -32879,7 +32850,7 @@ exports.run = run;
 
 /***/ }),
 
-/***/ 2601:
+/***/ 1314:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -32888,59 +32859,37 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getDefaultVetPolicyFilePath = void 0;
-const node_fs_1 = __importDefault(__nccwpck_require__(7561));
-const github_1 = __nccwpck_require__(978);
+exports.isGithubRunnerDebug = exports.getTempFilePath = exports.supportedLockfiles = exports.getDefaultVetPolicyFilePath = void 0;
+const node_path_1 = __importDefault(__nccwpck_require__(9411));
 function getDefaultVetPolicyFilePath() {
-    const defaultPolicyTemplate = `
-name: General Purpose OSS Best Practices
-description: |
-  This filter suite contains rules for implementing general purpose OSS
-  consumption best practices for an organization.
-tags:
-  - general
-  - safedep-managed
-filters:
-  - name: critical-or-high-vulns
-    check_type: CheckTypeVulnerability
-    summary: Critical or high risk vulnerabilities were found
-    value: |
-      vulns.critical.exists(p, true) || vulns.high.exists(p, true)
-  - name: low-popularity
-    check_type: CheckTypePopularity
-    summary: Component popularity is low by Github stars count
-    value: |
-      projects.exists(p, (p.type == "GITHUB") && (p.stars < 10))
-  - name: risky-oss-licenses
-    check_type: CheckTypeLicense
-    summary: Risky OSS license was detected
-    value: |
-      licenses.exists(p, p == "GPL-2.0") ||
-      licenses.exists(p, p == "GPL-2.0-only") ||
-      licenses.exists(p, p == "GPL-3.0") ||
-      licenses.exists(p, p == "GPL-3.0-only") ||
-      licenses.exists(p, p == "BSD-3-Clause OR GPL-2.0")
-  - name: ossf-unmaintained
-    check_type: CheckTypeMaintenance
-    summary: Component appears to be unmaintained
-    value: |
-      scorecard.scores["Maintained"] == 0
-  - name: osv-malware
-    check_type: CheckTypeMalware
-    summary: Malicious (malware) component detected
-    value: |
-      vulns.all.exists(v, v.id.startsWith("MAL-"))
-  - name: ossf-dangerous-workflow
-    check_type: CheckTypeSecurityScorecard
-    summary: Component release pipeline appear to use dangerous workflows
-    value: |
-      scorecard.scores["Dangerous-Workflow"] == 0
-    `;
-    const policyFile = (0, github_1.getTempFilePath)();
-    node_fs_1.default.writeFileSync(policyFile, defaultPolicyTemplate, { encoding: 'utf-8' });
-    return policyFile;
+    const currentFilePath = __filename;
+    const policyFilePath = node_path_1.default.join(node_path_1.default.dirname(currentFilePath), 'policy.yml');
+    return policyFilePath;
 }
 exports.getDefaultVetPolicyFilePath = getDefaultVetPolicyFilePath;
+function supportedLockfiles() {
+    return [
+        'Gemfile.lock',
+        'package-lock.json',
+        'yarn.lock',
+        'Pipfile.lock',
+        'poetry.lock',
+        'go.mod',
+        'pom.xml',
+        'gradle.lockfile',
+        'requirements.txt'
+    ];
+}
+exports.supportedLockfiles = supportedLockfiles;
+function getTempFilePath() {
+    const tempDir = process.env.RUNNER_TEMP;
+    return node_path_1.default.join(tempDir, `vet-tmp-${Math.random().toString(36)}`);
+}
+exports.getTempFilePath = getTempFilePath;
+function isGithubRunnerDebug() {
+    return (process.env.RUNNER_DEBUG ?? 'false') !== 'false';
+}
+exports.isGithubRunnerDebug = isGithubRunnerDebug;
 
 
 /***/ }),
@@ -32982,8 +32931,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const github_1 = __nccwpck_require__(5438);
 const node_fs_1 = __importDefault(__nccwpck_require__(7561));
 const path_1 = __importDefault(__nccwpck_require__(1017));
-const github_2 = __nccwpck_require__(978);
-const policy_1 = __nccwpck_require__(2601);
+const utils_1 = __nccwpck_require__(1314);
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = __nccwpck_require__(1514);
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -33031,7 +32979,8 @@ class Vet {
         else {
             throw new Error(`Unsupported event type: ${eventType}`);
         }
-        return new Date().toTimeString();
+        // TODO: Return SARIF file path when applicable
+        return '';
     }
     async runOnPush() {
         core.info('Running on push event');
@@ -33043,14 +32992,25 @@ class Vet {
         core.info(`Found ${changedFiles.length} changed file(s)`);
         // Filter by lockfiles that we support
         const changedLockFiles = changedFiles.filter(file => this.isSupportedLockfile(file.filename));
-        core.info(`Found ${changedLockFiles.length} supported lockfile(s)`);
+        if (changedLockFiles.length === 0) {
+            core.info('No change in OSS components detected in PR');
+            return;
+        }
+        core.info(`Found ${changedLockFiles.length} supported manifest(s)`);
         // Run vet on each lockfile's baseRef to generate JSON data
         // This data is required for generating exceptions file for ignoring
         // all existing packages so that we only scan new packages
         const jsonDumpDir = path_1.default.join(process.env.RUNNER_TEMP, 'vet-exceptions-json-dump');
         for (const file of changedLockFiles) {
-            // TODO: Handle the case where a new lockfile is added or deleted
-            const tempFile = await this.pullRequestCheckoutFileByPath(this.pullRequestBaseRef(), file.filename);
+            let tempFile;
+            try {
+                tempFile = await this.pullRequestCheckoutFileByPath(this.pullRequestBaseRef(), file.filename);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            }
+            catch (error) {
+                core.warning(`Unable to checkout file: ${error.message}`);
+                continue;
+            }
             const lockfileName = path_1.default.basename(file.filename);
             core.info(`Running vet on ${file.filename} as ${lockfileName} for generating exceptions list`);
             const vetArgs = [
@@ -33077,10 +33037,10 @@ class Vet {
             '--exceptions-generate',
             exceptionsFileName
         ]);
-        core.info(`Generated exceptions for ${changedLockFiles.length} lockfiles from baseRef to ${exceptionsFileName}`);
+        core.info(`Generated exceptions for ${changedLockFiles.length} manifest(s) from baseRef to ${exceptionsFileName}`);
         // Run vet to scan changed packages only
-        const vetMarkdownReportPath = this.tempFilePath();
-        const policyFilePath = this.getDefaultPolicyFilePath();
+        const vetMarkdownReportPath = (0, utils_1.getTempFilePath)();
+        const policyFilePath = this.getPolicyFilePath();
         core.info(`Using default policy from path: ${policyFilePath}`);
         const vetFinalScanArgs = [
             'scan',
@@ -33150,8 +33110,7 @@ class Vet {
         return match[1];
     }
     async runVet(args, silent = false, ignoreReturnCode = false, matchOutput = false, matchOutputRegex = '') {
-        // Override silent flag if we are running in actions debug environment
-        if (this.isRunnerDebug()) {
+        if ((0, utils_1.isGithubRunnerDebug)()) {
             silent = false;
         }
         let output = '';
@@ -33176,8 +33135,11 @@ class Vet {
         return output;
     }
     async getLatestRelease() {
-        // TODO: Use Github API to fetch latest version number
-        return 'https://github.com/safedep/vet/releases/download/v1.5.8/vet_Linux_x86_64.tar.gz';
+        let versionToUse = this.config.version ?? '';
+        if (versionToUse.length === 0) {
+            versionToUse = 'v1.5.8';
+        }
+        return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`;
     }
     async downloadBinary(url) {
         return tc.downloadTool(url);
@@ -33185,8 +33147,6 @@ class Vet {
     async extractBinary(tgzPath) {
         return tc.extractTar(tgzPath);
     }
-    // Checkout the file from the given ref into a temporary file
-    // and return the path to the temporary file
     async pullRequestCheckoutFileByPath(ref, filePath) {
         core.info(`Checking out file: ${filePath}@${ref}`);
         const response = await this.octokit.rest.repos.getContent({
@@ -33203,7 +33163,7 @@ class Vet {
         }
         const content = Buffer.from(response.data.content, 'base64').toString();
         core.debug(`File content: ${content}`);
-        const tempFile = this.tempFilePath();
+        const tempFile = (0, utils_1.getTempFilePath)();
         node_fs_1.default.writeFileSync(tempFile, content, { encoding: 'utf-8' });
         return tempFile;
     }
@@ -33246,31 +33206,15 @@ class Vet {
     pullRequestHeadRef() {
         return process.env.GITHUB_HEAD_REF;
     }
-    tempFilePath() {
-        return (0, github_2.getTempFilePath)();
-    }
     isSupportedLockfile(filename) {
         const baseFileName = path_1.default.basename(filename);
-        return this.supportedLockfiles().includes(baseFileName);
+        return (0, utils_1.supportedLockfiles)().includes(baseFileName);
     }
-    supportedLockfiles() {
-        return [
-            'Gemfile.lock',
-            'package-lock.json',
-            'yarn.lock',
-            'Pipfile.lock',
-            'poetry.lock',
-            'go.mod',
-            'pom.xml',
-            'gradle.lockfile',
-            'requirements.txt'
-        ];
-    }
-    getDefaultPolicyFilePath() {
-        return (0, policy_1.getDefaultVetPolicyFilePath)();
-    }
-    isRunnerDebug() {
-        return (0, github_2.isGithubRunnerDebug)();
+    getPolicyFilePath() {
+        if (this.config.policy) {
+            return this.config.policy;
+        }
+        return (0, utils_1.getDefaultVetPolicyFilePath)();
     }
 }
 exports.Vet = Vet;
@@ -33395,6 +33339,14 @@ module.exports = require("node:events");
 
 "use strict";
 module.exports = require("node:fs");
+
+/***/ }),
+
+/***/ 9411:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("node:path");
 
 /***/ }),
 

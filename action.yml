@@ -1,7 +1,8 @@
 name: SafeDep vet
 description:
   Run vet as a GitHub Action to vet your dependencies against OSS Supply Chain
-  attacks
+  attacks. Performs incremental vetting of changed dependencies in a pull
+  request.
 author: 'SafeDep'
 
 branding:
@@ -18,6 +19,10 @@ inputs:
     default: false
   cloud-key:
     description: API key to use for synchronizing report with SafeDep cloud
+    required: false
+  version:
+    description:
+      vet version to use for the scan. Defaults to using latest release
     required: false
 
 outputs:

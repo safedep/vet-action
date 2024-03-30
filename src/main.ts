@@ -23,16 +23,28 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const version: string = core.getInput('version', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
     )
 
-    core.debug(`Running vet with policy: ${policy} cloudMode: ${cloudMode}`)
+    core.debug(
+      `Running vet with policy: ${
+        policy.length === 0 ? '<default>' : policy
+      } cloudMode: ${cloudMode} version: ${
+        version.length === 0 ? '<latest>' : version
+      }`
+    )
 
     const vet = new Vet({
       apiKey: cloudKey,
       policy,
+      version,
       cloudMode,
       pullRequestNumber: context.payload.pull_request?.number,
       pullRequestComment: true

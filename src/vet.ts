@@ -3,8 +3,12 @@ import { getOctokit } from '@actions/github'
 import { GitHub } from '@actions/github/lib/utils'
 import fs from 'node:fs'
 import path from 'path'
-import { getTempFilePath, isGithubRunnerDebug } from './github'
-import { getDefaultVetPolicyFilePath } from './policy'
+import {
+  getDefaultVetPolicyFilePath,
+  getTempFilePath,
+  isGithubRunnerDebug,
+  supportedLockfiles
+} from './utils'
 
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
@@ -16,6 +20,7 @@ interface VetConfig {
   apiKey?: string
   policy?: string
   cloudMode?: boolean
+  version?: string
   pullRequestNumber?: number
   pullRequestComment?: boolean
 }
@@ -74,7 +79,8 @@ export class Vet {
       throw new Error(`Unsupported event type: ${eventType}`)
     }
 
-    return new Date().toTimeString()
+    // TODO: Return SARIF file path when applicable
+    return ''
   }
 
   private async runOnPush(): Promise<void> {
@@ -93,7 +99,12 @@ export class Vet {
       this.isSupportedLockfile(file.filename)
     )
 
-    core.info(`Found ${changedLockFiles.length} supported lockfile(s)`)
+    if (changedLockFiles.length === 0) {
+      core.info('No change in OSS components detected in PR')
+      return
+    }
+
+    core.info(`Found ${changedLockFiles.length} supported manifest(s)`)
 
     // Run vet on each lockfile's baseRef to generate JSON data
     // This data is required for generating exceptions file for ignoring
@@ -103,11 +114,18 @@ export class Vet {
       'vet-exceptions-json-dump'
     )
     for (const file of changedLockFiles) {
-      // TODO: Handle the case where a new lockfile is added or deleted
-      const tempFile = await this.pullRequestCheckoutFileByPath(
-        this.pullRequestBaseRef(),
-        file.filename
-      )
+      let tempFile: string
+      try {
+        tempFile = await this.pullRequestCheckoutFileByPath(
+          this.pullRequestBaseRef(),
+          file.filename
+        )
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(`Unable to checkout file: ${error.message}`)
+        continue
+      }
 
       const lockfileName = path.basename(file.filename)
 
@@ -147,12 +165,12 @@ export class Vet {
     ])
 
     core.info(
-      `Generated exceptions for ${changedLockFiles.length} lockfiles from baseRef to ${exceptionsFileName}`
+      `Generated exceptions for ${changedLockFiles.length} manifest(s) from baseRef to ${exceptionsFileName}`
     )
 
     // Run vet to scan changed packages only
-    const vetMarkdownReportPath = this.tempFilePath()
-    const policyFilePath = this.getDefaultPolicyFilePath()
+    const vetMarkdownReportPath = getTempFilePath()
+    const policyFilePath = this.getPolicyFilePath()
 
     core.info(`Using default policy from path: ${policyFilePath}`)
 
@@ -252,8 +270,7 @@ export class Vet {
     matchOutput = false,
     matchOutputRegex = ''
   ): Promise<string> {
-    // Override silent flag if we are running in actions debug environment
-    if (this.isRunnerDebug()) {
+    if (isGithubRunnerDebug()) {
       silent = false
     }
 
@@ -284,8 +301,12 @@ export class Vet {
   }
 
   private async getLatestRelease(): Promise<string> {
-    // TODO: Use Github API to fetch latest version number
-    return 'https://github.com/safedep/vet/releases/download/v1.5.8/vet_Linux_x86_64.tar.gz'
+    let versionToUse = this.config.version ?? ''
+    if (versionToUse.length === 0) {
+      versionToUse = 'v1.5.8'
+    }
+
+    return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
   }
 
   private async downloadBinary(url: string): Promise<string> {
@@ -296,8 +317,6 @@ export class Vet {
     return tc.extractTar(tgzPath)
   }
 
-  // Checkout the file from the given ref into a temporary file
-  // and return the path to the temporary file
   private async pullRequestCheckoutFileByPath(
     ref: string,
     filePath: string
@@ -328,7 +347,7 @@ export class Vet {
 
     core.debug(`File content: ${content}`)
 
-    const tempFile = this.tempFilePath()
+    const tempFile = getTempFilePath()
     fs.writeFileSync(tempFile, content, { encoding: 'utf-8' })
 
     return tempFile
@@ -382,34 +401,16 @@ export class Vet {
     return process.env.GITHUB_HEAD_REF as string
   }
 
-  private tempFilePath(): string {
-    return getTempFilePath()
-  }
-
   private isSupportedLockfile(filename: string): boolean {
     const baseFileName = path.basename(filename)
-    return this.supportedLockfiles().includes(baseFileName)
+    return supportedLockfiles().includes(baseFileName)
   }
 
-  private supportedLockfiles(): string[] {
-    return [
-      'Gemfile.lock',
-      'package-lock.json',
-      'yarn.lock',
-      'Pipfile.lock',
-      'poetry.lock',
-      'go.mod',
-      'pom.xml',
-      'gradle.lockfile',
-      'requirements.txt'
-    ]
-  }
+  private getPolicyFilePath(): string {
+    if (this.config.policy) {
+      return this.config.policy
+    }
 
-  private getDefaultPolicyFilePath(): string {
     return getDefaultVetPolicyFilePath()
-  }
-
-  private isRunnerDebug(): boolean {
-    return isGithubRunnerDebug()
   }
 }
