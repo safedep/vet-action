@@ -12,7 +12,7 @@ in OSS components. For more details, refer to `vet` GitHub repository
 
 ## Usage
 
-> Follow [setup instructions](#setup-instructions) for step by step guide 
+> Follow [setup instructions](#setup-instructions) for step by step guide
 > on how to integrate `vet` in your GitHub repository with customizable policies
 
 ### Quick Start
