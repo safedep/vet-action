@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   vet:
-    name: vet OSS Components
+    name: vet
     runs-on: ubuntu-latest
 
     steps:
