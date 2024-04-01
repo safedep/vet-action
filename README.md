@@ -48,13 +48,13 @@ mkdir -p .github/workflows .github/vet
 - Download the policy file into the policy directory
 
 ```bash
-curl -o .github/vet/policy.yml -L <URL>
+curl -o .github/vet/policy.yml -L https://raw.githubusercontent.com/safedep/vet-action/main/example/policy.yml
 ```
 
 - Download `vet` GitHub Action workflow
 
 ```bash
-curl -o .github/workflows/vet-ci.yml -L <URL>
+curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safedep/vet-action/main/example/vet-ci.yml
 ```
 
 - Review the policy file in `.github/vet/policy.yml` and edit as required
