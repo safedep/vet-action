@@ -17,6 +17,9 @@ in OSS components. For more details, refer to `vet` GitHub repository
 
 ### Quick Start
 
+> Follow *quickstart* if you want to integrate `vet` as a step in your
+> existing GitHub actions workflow
+
 TLDR; add this GitHub action to vet your changed dependencies during pull request
 
 ```yaml
@@ -31,6 +34,9 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
 ```
 
 ### Setup Instructions
+
+> Follow this instruction to integrate `vet` as a GitHub action in your
+> GitHub repository
 
 - Go to the root directory of your GitHub repository
 - Create the workflow and policy directory
@@ -51,6 +57,7 @@ curl -o .github/vet/policy.yml -L <URL>
 curl -o .github/workflows/vet-ci.yml -L <URL>
 ```
 
+- Review the policy file in `.github/vet/policy.yml` and edit as required
 - Push / PR your changes into the repository
 
 ## Support
