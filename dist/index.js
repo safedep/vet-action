@@ -33050,10 +33050,21 @@ class Vet {
             '--report-markdown-summary',
             vetMarkdownReportPath,
             '--filter-suite',
-            policyFilePath
+            policyFilePath,
+            '--filter-fail'
         ];
         core.info(`Running vet to generate final report at ${vetMarkdownReportPath}`);
-        await this.runVet(vetFinalScanArgs);
+        // Hold the final run exception till we complete the steps
+        // Throw (fail) if vet failed during final run. This is expected
+        // when vet detects a policy violation.
+        let finalRunException = null;
+        try {
+            await this.runVet(vetFinalScanArgs);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }
+        catch (ex) {
+            finalRunException = ex;
+        }
         if (!node_fs_1.default.existsSync(vetMarkdownReportPath)) {
             throw new Error(`vet markdown report file not found at ${vetMarkdownReportPath}`);
         }
@@ -33068,8 +33079,7 @@ class Vet {
                 issue_number: this.config.pullRequestNumber,
                 per_page: 100
             });
-            // Check if any comment has marker
-            const marker = '<!-- vet-report-pr-comment -->';
+            const marker = `<!-- vet-report-pr-comment -->`;
             const existingComment = comments.data.find(comment => comment.body?.includes(marker));
             const comment = `${reportContent}\n\n${marker}`;
             core.info('Adding vet report as a comment in the PR');
@@ -33089,6 +33099,11 @@ class Vet {
                     body: comment
                 });
             }
+        }
+        // Throw the exception if vet scan failed
+        if (finalRunException) {
+            core.error(`One or more policy violation was detected!`);
+            throw finalRunException;
         }
     }
     async runOnSchedule() {
