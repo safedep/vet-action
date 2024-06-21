@@ -1,11 +1,5 @@
 # vet GitHub Action
 
-[![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
-![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
-[![Check dist/](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/check-dist.yml)
-[![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
-[![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
-
 [vet](https://github.com/safedep/vet) is a tool for finding security risks
 in OSS components. For more details, refer to `vet` GitHub repository
 [https://github.com/safedep/vet](https://github.com/safedep/vet)
@@ -24,6 +18,7 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
 
 ```yaml
 - name: Run vet
+  id: vet
   permissions:
     contents: read
     issues: write
@@ -31,6 +26,16 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
   uses: safedep/vet-action@v1
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+The output of `vet-action` is a [SARIF](#) report that can be uploaded to Github Code Scanning
+
+```yaml
+- name: Upload SARIF
+  uses: github/codeql-action/upload-sarif@v3
+  with:
+    sarif_file: ${{ steps.vet.outputs.report }}
+    category: vet
 ```
 
 ### Setup Instructions

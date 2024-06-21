@@ -23,6 +23,7 @@ interface VetConfig {
   version?: string
   pullRequestNumber?: number
   pullRequestComment?: boolean
+  exceptionFile?: string
 }
 
 interface PullRequestFile {
@@ -69,25 +70,49 @@ export class Vet {
       process.env.VET_COMMUNITY_MODE = 'true'
     }
 
+    let sarifReportPath = ''
+
     if (eventType === 'push') {
-      this.runOnPush()
+      sarifReportPath = await this.runOnPush()
     } else if (eventType === 'schedule') {
       this.runOnSchedule()
     } else if (eventType === 'pull_request') {
-      this.runOnPullRequest()
+      sarifReportPath = await this.runOnPullRequest()
     } else {
       throw new Error(`Unsupported event type: ${eventType}`)
     }
 
-    // TODO: Return SARIF file path when applicable
-    return ''
+    return sarifReportPath
   }
 
-  private async runOnPush(): Promise<void> {
+  private async runOnPush(): Promise<string> {
     core.info('Running on push event')
+
+    const vetSarifReportPath = getTempFilePath()
+    const policyFilePath = this.getPolicyFilePath()
+
+    core.info(`Using policy from path: ${policyFilePath}`)
+
+    const vetFinalScanArgs = [
+      'scan',
+      '--report-sarif',
+      vetSarifReportPath,
+      '--filter-suite',
+      policyFilePath
+    ]
+
+    await this.runVet(vetFinalScanArgs)
+
+    if (!fs.existsSync(vetSarifReportPath)) {
+      throw new Error(
+        `vet markdown report file not found at ${vetSarifReportPath}`
+      )
+    }
+
+    return vetSarifReportPath
   }
 
-  private async runOnPullRequest(): Promise<void> {
+  private async runOnPullRequest(): Promise<string> {
     core.info('Running on pull request event')
 
     // Find changed files
@@ -101,7 +126,7 @@ export class Vet {
 
     if (changedLockFiles.length === 0) {
       core.info('No change in OSS components detected in PR')
-      return
+      return ''
     }
 
     core.info(`Found ${changedLockFiles.length} supported manifest(s)`)
@@ -170,6 +195,7 @@ export class Vet {
 
     // Run vet to scan changed packages only
     const vetMarkdownReportPath = getTempFilePath()
+    const vetSarifReportPath = getTempFilePath()
     const policyFilePath = this.getPolicyFilePath()
 
     core.info(`Using default policy from path: ${policyFilePath}`)
@@ -181,10 +207,18 @@ export class Vet {
       exceptionsFileName,
       '--report-markdown-summary',
       vetMarkdownReportPath,
+      '--report-sarif',
+      vetSarifReportPath,
       '--filter-suite',
       policyFilePath,
       '--filter-fail'
     ]
+
+    // Check if exceptionsFile is provided
+    if (this.config.exceptionFile) {
+      core.info(`Using exceptions file: ${this.config.exceptionFile}`)
+      vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile)
+    }
 
     core.info(
       `Running vet to generate final report at ${vetMarkdownReportPath}`
@@ -224,7 +258,7 @@ export class Vet {
 
       const marker = `<!-- vet-report-pr-comment -->`
       const existingComment = comments.data.find(
-        comment => comment.body?.includes(marker)
+        comment => comment.body?.includes(marker) // eslint-disable-line prettier/prettier
       )
 
       const comment = `${reportContent}\n\n${marker}`
@@ -253,10 +287,13 @@ export class Vet {
       core.error(`One or more policy violation was detected!`)
       throw finalRunException
     }
+
+    return vetSarifReportPath
   }
 
-  private async runOnSchedule(): Promise<void> {
-    core.info('Running on schedule event')
+  private async runOnSchedule(): Promise<string> {
+    core.info('Scheduled run is not supported at this time')
+    return ''
   }
 
   private async verifyVetBinary(): Promise<void> {
@@ -319,7 +356,7 @@ export class Vet {
   private async getLatestRelease(): Promise<string> {
     let versionToUse = this.config.version ?? ''
     if (versionToUse.length === 0) {
-      versionToUse = 'v1.5.8'
+      versionToUse = 'v1.6.0'
     }
 
     return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
