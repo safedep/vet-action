@@ -25,7 +25,7 @@ jobs:
 
       - name: Run vet
         id: vet
-        uses: safedep/vet-action@v1
+        uses: ./
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
