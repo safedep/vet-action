@@ -28,6 +28,11 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const exceptionFile: string = core.getInput('exception-file', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -47,7 +52,8 @@ export async function run(): Promise<void> {
       version,
       cloudMode,
       pullRequestNumber: context.payload.pull_request?.number,
-      pullRequestComment: true
+      pullRequestComment: true,
+      exceptionFile
     })
 
     const reportPath = await vet.run(eventName, eventJson)
