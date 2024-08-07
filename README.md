@@ -28,8 +28,8 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The output of `vet-action` is a [SARIF](#) report that can be uploaded to
-Github Code Scanning
+The output of `vet-action` is a [SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
+report that can be uploaded to GitHub Code Scanning
 
 ```yaml
 - name: Upload SARIF
