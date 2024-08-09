@@ -33112,6 +33112,10 @@ async function run() {
             required: false,
             trimWhitespace: true
         });
+        const trustedRegistries = core.getInput('trusted-registries', {
+            required: false,
+            trimWhitespace: true
+        });
         const eventName = process.env.GITHUB_EVENT_NAME;
         const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         core.debug(`Running vet with policy: ${policy.length === 0 ? '<default>' : policy} cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`);
@@ -33122,7 +33126,8 @@ async function run() {
             cloudMode,
             pullRequestNumber: github_1.context.payload.pull_request?.number,
             pullRequestComment: true,
-            exceptionFile
+            exceptionFile,
+            trustedRegistries: trustedRegistries.split(',').map(r => r.trim())
         });
         const reportPath = await vet.run(eventName, eventJson);
         core.setOutput('report', reportPath);
@@ -33279,6 +33284,12 @@ class Vet {
             '--filter-suite',
             policyFilePath
         ];
+        if (this.config.trustedRegistries) {
+            core.info(`Using trusted registries: ${this.config.trustedRegistries.join(',')}`);
+            for (const registry of this.config.trustedRegistries) {
+                vetFinalScanArgs.push('--trusted-registry', registry);
+            }
+        }
         await this.runVet(vetFinalScanArgs);
         if (!node_fs_1.default.existsSync(vetSarifReportPath)) {
             throw new Error(`vet markdown report file not found at ${vetSarifReportPath}`);
@@ -33360,6 +33371,12 @@ class Vet {
         if (this.config.exceptionFile) {
             core.info(`Using exceptions file: ${this.config.exceptionFile}`);
             vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile);
+        }
+        if (this.config.trustedRegistries) {
+            core.info(`Using trusted registries: ${this.config.trustedRegistries.join(',')}`);
+            for (const registry of this.config.trustedRegistries) {
+                vetFinalScanArgs.push('--trusted-registry', registry);
+            }
         }
         core.info(`Running vet to generate final report at ${vetMarkdownReportPath}`);
         // Hold the final run exception till we complete the steps
@@ -33476,6 +33493,9 @@ class Vet {
     async pullRequestCheckoutFileByPath(ref, filePath) {
         core.info(`Checking out file: ${filePath}@${ref}`);
         const response = await this.octokit.rest.repos.getContent({
+            mediaType: {
+                format: 'raw'
+            },
             repo: this.repoName(),
             owner: this.ownerName(),
             path: filePath,
@@ -33487,7 +33507,10 @@ class Vet {
         if (!response.data) {
             throw new Error('No file contents found in response');
         }
-        const content = Buffer.from(response.data.content, 'base64').toString();
+        // We are using the 'raw' media type, so the response data is
+        // the file content itself.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const content = Buffer.from(response.data).toString('utf-8');
         core.debug(`File content: ${content}`);
         const tempFile = (0, utils_1.getTempFilePath)();
         node_fs_1.default.writeFileSync(tempFile, content, { encoding: 'utf-8' });

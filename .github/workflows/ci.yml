@@ -58,6 +58,7 @@ jobs:
         uses: ./
         with:
           cloud: false
+          trusted-registries: https://example1.com,https://example2.com
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

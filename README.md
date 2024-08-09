@@ -28,7 +28,8 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The output of `vet-action` is a [SARIF](#) report that can be uploaded to Github Code Scanning
+The output of `vet-action` is a [SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
+report that can be uploaded to GitHub Code Scanning
 
 ```yaml
 - name: Upload SARIF
@@ -64,6 +65,22 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 
 - Review the policy file in `.github/vet/policy.yml` and edit as required
 - Push / PR your changes into the repository
+
+## Configuration
+
+`vet-action` accepts following additional configuration for customizing how
+`vet` is invoked during scan
+
+<!-- markdownlint-disable MD013 -->
+| GitHub Action Input  | Example Value                    | Notes                                         |
+| -------------------- | -------------------------------- | --------------------------------------------- |
+| `policy`             | `policies/sample.yml`            | Path to `vet` YAML policy file (filter suite) |
+| `exception-file`     | `config/exceptions.yml`          | Path to `vet` exception YAML file             |
+| `trusted-registries` | `https://r1.org, https://r2.org` | `,` separated string of registry base URLs    |
+
+- Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
+- Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
+<!-- markdownlint-enable MD013 -->
 
 ## Support
 

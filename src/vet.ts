@@ -24,6 +24,7 @@ interface VetConfig {
   pullRequestNumber?: number
   pullRequestComment?: boolean
   exceptionFile?: string
+  trustedRegistries?: string[]
 }
 
 interface PullRequestFile {
@@ -100,6 +101,16 @@ export class Vet {
       '--filter-suite',
       policyFilePath
     ]
+
+    if (this.config.trustedRegistries) {
+      core.info(
+        `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
+      )
+
+      for (const registry of this.config.trustedRegistries) {
+        vetFinalScanArgs.push('--trusted-registry', registry)
+      }
+    }
 
     await this.runVet(vetFinalScanArgs)
 
@@ -218,6 +229,16 @@ export class Vet {
     if (this.config.exceptionFile) {
       core.info(`Using exceptions file: ${this.config.exceptionFile}`)
       vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile)
+    }
+
+    if (this.config.trustedRegistries) {
+      core.info(
+        `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
+      )
+
+      for (const registry of this.config.trustedRegistries) {
+        vetFinalScanArgs.push('--trusted-registry', registry)
+      }
     }
 
     core.info(
@@ -377,6 +398,9 @@ export class Vet {
     core.info(`Checking out file: ${filePath}@${ref}`)
 
     const response = await this.octokit.rest.repos.getContent({
+      mediaType: {
+        format: 'raw'
+      },
       repo: this.repoName(),
       owner: this.ownerName(),
       path: filePath,
@@ -393,10 +417,10 @@ export class Vet {
       throw new Error('No file contents found in response')
     }
 
-    const content = Buffer.from(
-      (response.data as { content: string }).content,
-      'base64'
-    ).toString()
+    // We are using the 'raw' media type, so the response data is
+    // the file content itself.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const content = Buffer.from(response.data as any).toString('utf-8')
 
     core.debug(`File content: ${content}`)
 

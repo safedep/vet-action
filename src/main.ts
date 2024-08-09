@@ -33,6 +33,11 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const trustedRegistries: string = core.getInput('trusted-registries', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -53,7 +58,8 @@ export async function run(): Promise<void> {
       cloudMode,
       pullRequestNumber: context.payload.pull_request?.number,
       pullRequestComment: true,
-      exceptionFile
+      exceptionFile,
+      trustedRegistries: trustedRegistries.split(',').map(r => r.trim())
     })
 
     const reportPath = await vet.run(eventName, eventJson)
