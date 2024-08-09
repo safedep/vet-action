@@ -59,7 +59,10 @@ export async function run(): Promise<void> {
       pullRequestNumber: context.payload.pull_request?.number,
       pullRequestComment: true,
       exceptionFile,
-      trustedRegistries: trustedRegistries.split(',').map(r => r.trim())
+      trustedRegistries: trustedRegistries
+        .split(',')
+        .map(r => r.trim())
+        .filter(r => r.length > 0)
     })
 
     const reportPath = await vet.run(eventName, eventJson)
