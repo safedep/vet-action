@@ -71,6 +71,7 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 `vet-action` accepts following additional configuration for customizing how
 `vet` is invoked during scan
 
+<!-- markdownlint-disable MD013 -->
 | GitHub Action Input  | Example Value                    | Notes                                         |
 | -------------------- | -------------------------------- | --------------------------------------------- |
 | `policy`             | `policies/sample.yml`            | Path to `vet` YAML policy file (filter suite) |
@@ -79,6 +80,7 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
+<!-- markdownlint-enable MD013 -->
 
 ## Support
 
