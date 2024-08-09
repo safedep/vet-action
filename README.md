@@ -66,6 +66,20 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 - Review the policy file in `.github/vet/policy.yml` and edit as required
 - Push / PR your changes into the repository
 
+## Configuration
+
+`vet-action` accepts following additional configuration for customizing how
+`vet` is invoked during scan
+
+| GitHub Action Input  | Example Value                    | Notes                                         |
+| -------------------- | -------------------------------- | --------------------------------------------- |
+| `policy`             | `policies/sample.yml`            | Path to `vet` YAML policy file (filter suite) |
+| `exception-file`     | `config/exceptions.yml`          | Path to `vet` exception YAML file             |
+| `trusted-registries` | `https://r1.org, https://r2.org` | `,` separated string of registry base URLs    |
+
+- Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
+- Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
+
 ## Support
 
 - Raise issues related to GitHub Action at [https://github.com/safedep/vet-action/issues](https://github.com/safedep/vet-action/issues)

@@ -24,6 +24,7 @@ interface VetConfig {
   pullRequestNumber?: number
   pullRequestComment?: boolean
   exceptionFile?: string
+  trustedRegistries?: string[]
 }
 
 interface PullRequestFile {
@@ -100,6 +101,16 @@ export class Vet {
       '--filter-suite',
       policyFilePath
     ]
+
+    if (this.config.trustedRegistries) {
+      core.info(
+        `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
+      )
+
+      for (const registry of this.config.trustedRegistries) {
+        vetFinalScanArgs.push('--trusted-registry', registry)
+      }
+    }
 
     await this.runVet(vetFinalScanArgs)
 
@@ -218,6 +229,16 @@ export class Vet {
     if (this.config.exceptionFile) {
       core.info(`Using exceptions file: ${this.config.exceptionFile}`)
       vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile)
+    }
+
+    if (this.config.trustedRegistries) {
+      core.info(
+        `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
+      )
+
+      for (const registry of this.config.trustedRegistries) {
+        vetFinalScanArgs.push('--trusted-registry', registry)
+      }
     }
 
     core.info(
