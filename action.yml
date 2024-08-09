@@ -24,6 +24,12 @@ inputs:
     description:
       vet version to use for the scan. Defaults to using latest release
     required: false
+  exception-file:
+    description: Path to exception file
+    required: false
+  trusted-registries:
+    description: Comma separated list of trusted registry base URLs
+    required: false
 
 outputs:
   report:
