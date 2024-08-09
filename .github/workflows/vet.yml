@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - feat/sarif-reporting
 
 permissions:
   contents: read
