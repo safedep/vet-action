@@ -102,7 +102,10 @@ export class Vet {
       policyFilePath
     ]
 
-    if (this.config.trustedRegistries) {
+    if (
+      this.config.trustedRegistries &&
+      this.config.trustedRegistries.length > 0
+    ) {
       core.info(
         `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
       )
@@ -231,7 +234,10 @@ export class Vet {
       vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile)
     }
 
-    if (this.config.trustedRegistries) {
+    if (
+      this.config.trustedRegistries &&
+      this.config.trustedRegistries.length > 0
+    ) {
       core.info(
         `Using trusted registries: ${this.config.trustedRegistries.join(',')}`
       )
