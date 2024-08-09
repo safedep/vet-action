@@ -33284,7 +33284,8 @@ class Vet {
             '--filter-suite',
             policyFilePath
         ];
-        if (this.config.trustedRegistries) {
+        if (this.config.trustedRegistries &&
+            this.config.trustedRegistries.length > 0) {
             core.info(`Using trusted registries: ${this.config.trustedRegistries.join(',')}`);
             for (const registry of this.config.trustedRegistries) {
                 vetFinalScanArgs.push('--trusted-registry', registry);
@@ -33372,7 +33373,8 @@ class Vet {
             core.info(`Using exceptions file: ${this.config.exceptionFile}`);
             vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile);
         }
-        if (this.config.trustedRegistries) {
+        if (this.config.trustedRegistries &&
+            this.config.trustedRegistries.length > 0) {
             core.info(`Using trusted registries: ${this.config.trustedRegistries.join(',')}`);
             for (const registry of this.config.trustedRegistries) {
                 vetFinalScanArgs.push('--trusted-registry', registry);
