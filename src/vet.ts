@@ -366,7 +366,10 @@ export class Vet {
     }
 
     const defaultArgs = ['--no-banner']
-    const finalArgs = [...new Set(defaultArgs.concat(args))]
+
+    // We must not use Set here because args may repeat.
+    // For example --trusted-registry, --lockfiles etc.
+    const finalArgs = [...new Array(defaultArgs.concat(args))]
 
     await exec.exec(this.vetBinaryPath, finalArgs, options)
 
