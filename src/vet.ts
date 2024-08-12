@@ -369,7 +369,11 @@ export class Vet {
 
     // We must not use Set here because args may repeat.
     // For example --trusted-registry, --lockfiles etc.
-    const finalArgs = [...new Array(defaultArgs.concat(args))]
+    const finalArgs = defaultArgs.concat(args)
+
+    core.debug(
+      `Running vet from: '${this.vetBinaryPath}' with command line: '${finalArgs}'`
+    )
 
     await exec.exec(this.vetBinaryPath, finalArgs, options)
 
