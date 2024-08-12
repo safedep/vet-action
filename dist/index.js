@@ -33316,6 +33316,10 @@ class Vet {
         // This data is required for generating exceptions file for ignoring
         // all existing packages so that we only scan new packages
         const jsonDumpDir = path_1.default.join(process.env.RUNNER_TEMP, 'vet-exceptions-json-dump');
+        // Create the directory if it does not exist
+        if (!node_fs_1.default.existsSync(jsonDumpDir)) {
+            node_fs_1.default.mkdirSync(jsonDumpDir, { recursive: true });
+        }
         for (const file of changedLockFiles) {
             let tempFile;
             try {
@@ -33323,6 +33327,8 @@ class Vet {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }
             catch (error) {
+                // This is not a fatal failure because base branch may not have the
+                // file when a new file is added in the PR.
                 core.warning(`Unable to checkout file: ${error.message}`);
                 continue;
             }
@@ -33352,6 +33358,11 @@ class Vet {
             '--exceptions-generate',
             exceptionsFileName
         ]);
+        // When no exceptions are generated, the file is not created
+        // so we touch the file to avoid vet failure
+        if (!node_fs_1.default.existsSync(exceptionsFileName)) {
+            node_fs_1.default.writeFileSync(exceptionsFileName, '', { encoding: 'utf-8' });
+        }
         core.info(`Generated exceptions for ${changedLockFiles.length} manifest(s) from baseRef to ${exceptionsFileName}`);
         // Run vet to scan changed packages only
         const vetMarkdownReportPath = (0, utils_1.getTempFilePath)();

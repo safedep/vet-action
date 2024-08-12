@@ -152,6 +152,12 @@ export class Vet {
       process.env.RUNNER_TEMP as string,
       'vet-exceptions-json-dump'
     )
+
+    // Create the directory if it does not exist
+    if (!fs.existsSync(jsonDumpDir)) {
+      fs.mkdirSync(jsonDumpDir, { recursive: true })
+    }
+
     for (const file of changedLockFiles) {
       let tempFile: string
       try {
@@ -162,6 +168,8 @@ export class Vet {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
+        // This is not a fatal failure because base branch may not have the
+        // file when a new file is added in the PR.
         core.warning(`Unable to checkout file: ${error.message}`)
         continue
       }
@@ -202,6 +210,12 @@ export class Vet {
       '--exceptions-generate',
       exceptionsFileName
     ])
+
+    // When no exceptions are generated, the file is not created
+    // so we touch the file to avoid vet failure
+    if (!fs.existsSync(exceptionsFileName)) {
+      fs.writeFileSync(exceptionsFileName, '', { encoding: 'utf-8' })
+    }
 
     core.info(
       `Generated exceptions for ${changedLockFiles.length} manifest(s) from baseRef to ${exceptionsFileName}`
