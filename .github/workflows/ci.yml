@@ -58,7 +58,7 @@ jobs:
         uses: ./
         with:
           cloud: false
-          trusted-registries: https://example1.com,https://example2.com
+          trusted-registries: https://registry.example.org/repositories/npm-private,https://registry.example.org/repositories/npm-group
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
