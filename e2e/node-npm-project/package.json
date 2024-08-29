@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/k6": "^0.53.1",
     "express": "^4.19.2"
   }
 }
