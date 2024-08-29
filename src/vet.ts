@@ -133,9 +133,13 @@ export class Vet {
     const changedFiles = await this.pullRequestGetChangedFiles()
     core.info(`Found ${changedFiles.length} changed file(s)`)
 
-    // Filter by lockfiles that we support
-    const changedLockFiles = changedFiles.filter(file =>
-      this.isSupportedLockfile(file.filename)
+    const changedLockFiles = changedFiles.filter(
+      file =>
+        // Filter by lockfiles that we support
+        this.isSupportedLockfile(file.filename) &&
+        // If the file is not found in head (current) branch then it
+        // means the PR removed the file. We can ignore this file.
+        fs.existsSync(file.filename)
     )
 
     if (changedLockFiles.length === 0) {

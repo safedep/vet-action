@@ -33305,8 +33305,12 @@ class Vet {
         // Find changed files
         const changedFiles = await this.pullRequestGetChangedFiles();
         core.info(`Found ${changedFiles.length} changed file(s)`);
+        const changedLockFiles = changedFiles.filter(file => 
         // Filter by lockfiles that we support
-        const changedLockFiles = changedFiles.filter(file => this.isSupportedLockfile(file.filename));
+        this.isSupportedLockfile(file.filename) &&
+            // If the file is not found in head (current) branch then it
+            // means the PR removed the file. We can ignore this file.
+            node_fs_1.default.existsSync(file.filename));
         if (changedLockFiles.length === 0) {
             core.info('No change in OSS components detected in PR');
             return '';
