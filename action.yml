@@ -20,6 +20,9 @@ inputs:
   cloud-key:
     description: API key to use for synchronizing report with SafeDep cloud
     required: false
+  cloud-tenant:
+    description: Tenant ID to use for synchronizing report with SafeDep cloud
+    required: false
   version:
     description:
       vet version to use for the scan. Defaults to using latest release

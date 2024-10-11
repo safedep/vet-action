@@ -23,6 +23,11 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const cloudTenant: string = core.getInput('cloud-tenant', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const version: string = core.getInput('version', {
       required: false,
       trimWhitespace: true
@@ -53,6 +58,7 @@ export async function run(): Promise<void> {
 
     const vet = new Vet({
       apiKey: cloudKey,
+      tenant: cloudTenant,
       policy,
       version,
       cloudMode,

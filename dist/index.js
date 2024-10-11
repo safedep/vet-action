@@ -33104,6 +33104,10 @@ async function run() {
             required: false,
             trimWhitespace: true
         });
+        const cloudTenant = core.getInput('cloud-tenant', {
+            required: false,
+            trimWhitespace: true
+        });
         const version = core.getInput('version', {
             required: false,
             trimWhitespace: true
@@ -33121,6 +33125,7 @@ async function run() {
         core.debug(`Running vet with policy: ${policy.length === 0 ? '<default>' : policy} cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`);
         const vet = new vet_1.Vet({
             apiKey: cloudKey,
+            tenant: cloudTenant,
             policy,
             version,
             cloudMode,
@@ -33252,13 +33257,12 @@ class Vet {
         core.info(`Running vet binary from ${vetBinaryFile}`);
         this.vetBinaryPath = vetBinaryFile;
         await this.verifyVetBinary();
-        if (this.config.apiKey) {
-            core.info('Using an API key');
-            process.env.VET_API_KEY = this.config.apiKey;
-        }
-        else {
+        if (!this.config.cloudMode) {
             core.info('Using community mode for API access');
             process.env.VET_COMMUNITY_MODE = 'true';
+        }
+        else {
+            core.info('Using authenticated mode for API access');
         }
         let sarifReportPath = '';
         if (eventType === 'push') {
@@ -33287,6 +33291,9 @@ class Vet {
             '--filter-suite',
             policyFilePath
         ];
+        if (this.config.cloudMode) {
+            this.applyCloudConfig(vetFinalScanArgs);
+        }
         if (this.config.trustedRegistries &&
             this.config.trustedRegistries.length > 0) {
             core.info(`Using trusted registries: ${this.config.trustedRegistries.join(',')}`);
@@ -33390,6 +33397,9 @@ class Vet {
         if (this.config.exceptionFile) {
             core.info(`Using exceptions file: ${this.config.exceptionFile}`);
             vetFinalScanArgs.push('--exceptions-extra', this.config.exceptionFile);
+        }
+        if (this.config.cloudMode) {
+            this.applyCloudConfig(vetFinalScanArgs);
         }
         if (this.config.trustedRegistries &&
             this.config.trustedRegistries.length > 0) {
@@ -33503,7 +33513,7 @@ class Vet {
     async getLatestRelease() {
         let versionToUse = this.config.version ?? '';
         if (versionToUse.length === 0) {
-            versionToUse = 'v1.6.1';
+            versionToUse = 'v1.8.0';
         }
         return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`;
     }
@@ -33587,6 +33597,21 @@ class Vet {
             return this.config.policy;
         }
         return (0, utils_1.getDefaultVetPolicyFilePath)();
+    }
+    applyCloudConfig(args) {
+        if (!this.config.apiKey) {
+            throw new Error('API key is required for cloud mode');
+        }
+        if (!this.config.tenant) {
+            throw new Error('Tenant is required for cloud mode');
+        }
+        core.info('Using cloud mode');
+        process.env.VET_API_KEY = this.config.apiKey;
+        core.info(`Using tenant: ${this.config.tenant}`);
+        process.env.VET_CONTROL_TOWER_TENANT_ID = this.config.tenant;
+        args.push('--report-sync');
+        args.push('--report-sync-project', process.env.GITHUB_REPOSITORY);
+        args.push('--report-sync-project-version', process.env.GITHUB_REF_NAME);
     }
 }
 exports.Vet = Vet;
