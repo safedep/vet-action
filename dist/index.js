@@ -33550,9 +33550,8 @@ class Vet {
         return tempFile;
     }
     async pullRequestGetChangedFiles() {
-        const response = await this.octokit.rest.repos.compareCommits({
-            base: this.pullRequestBaseRef(),
-            head: this.pullRequestHeadRef(),
+        const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
+            basehead: `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`,
             repo: this.repoName(),
             owner: this.ownerName()
         });
