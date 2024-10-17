@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { getOctokit } from '@actions/github'
+import { context, getOctokit } from '@actions/github'
 import { GitHub } from '@actions/github/lib/utils'
 import fs from 'node:fs'
 import path from 'path'
@@ -470,10 +470,13 @@ export class Vet {
   }
 
   private async pullRequestGetChangedFiles(): Promise<PullRequestFile[]> {
+    const comparison = `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`
+    core.info(`Pull request comparing: ${comparison}`)
+
     const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
-      basehead: `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`,
+      owner: this.ownerName(),
       repo: this.repoName(),
-      owner: this.ownerName()
+      basehead: comparison
     })
 
     if (response.status !== 200) {
@@ -513,7 +516,14 @@ export class Vet {
   }
 
   private pullRequestHeadRef(): string {
-    return process.env.GITHUB_HEAD_REF as string
+    const fullName = context.payload.pull_request?.head?.repo
+      ?.full_name as string
+
+    if ((process.env.GITHUB_REPOSITORY as string) === fullName) {
+      return process.env.GITHUB_HEAD_REF as string
+    }
+
+    return fullName.replaceAll('/', ':')
   }
 
   private isSupportedLockfile(filename: string): boolean {
