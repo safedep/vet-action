@@ -523,7 +523,10 @@ export class Vet {
       return process.env.GITHUB_HEAD_REF as string
     }
 
-    return fullName.replaceAll('/', ':')
+    const remoteOwner = fullName.split('/')[0]
+    const remoteBranch = context.payload.pull_request?.head?.ref as string
+
+    return `${remoteOwner}:${remoteBranch}`
   }
 
   private isSupportedLockfile(filename: string): boolean {
