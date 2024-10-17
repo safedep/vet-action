@@ -33592,7 +33592,9 @@ class Vet {
         if (process.env.GITHUB_REPOSITORY === fullName) {
             return process.env.GITHUB_HEAD_REF;
         }
-        return fullName.replaceAll('/', ':');
+        const remoteOwner = fullName.split('/')[0];
+        const remoteBranch = github_1.context.payload.pull_request?.head?.ref;
+        return `${remoteOwner}:${remoteBranch}`;
     }
     isSupportedLockfile(filename) {
         const baseFileName = path_1.default.basename(filename);
