@@ -77,7 +77,10 @@ export class Vet {
       sarifReportPath = await this.runOnPush()
     } else if (eventType === 'schedule') {
       this.runOnSchedule()
-    } else if (eventType === 'pull_request') {
+    } else if (
+      eventType === 'pull_request' ||
+      eventType === 'pull_request_target'
+    ) {
       sarifReportPath = await this.runOnPullRequest()
     } else {
       throw new Error(`Unsupported event type: ${eventType}`)
