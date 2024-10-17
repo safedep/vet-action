@@ -470,7 +470,7 @@ export class Vet {
   }
 
   private async pullRequestGetChangedFiles(): Promise<PullRequestFile[]> {
-    const comparison = `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`
+    const comparison = `${this.pullRequestBaseRef()}..${this.pullRequestHeadRef()}`
     core.info(`Pull request comparing: ${comparison}`)
 
     const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
