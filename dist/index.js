@@ -33550,10 +33550,12 @@ class Vet {
         return tempFile;
     }
     async pullRequestGetChangedFiles() {
+        const comparison = `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`;
+        core.info(`Pull request comparing: ${comparison}`);
         const response = await this.octokit.rest.repos.compareCommitsWithBasehead({
-            basehead: `${this.pullRequestBaseRef()}...${this.pullRequestHeadRef()}`,
+            owner: this.ownerName(),
             repo: this.repoName(),
-            owner: this.ownerName()
+            basehead: comparison
         });
         if (response.status !== 200) {
             throw new Error(`Unable to get changed files: ${response.status}`);
@@ -33585,7 +33587,12 @@ class Vet {
         return process.env.GITHUB_BASE_REF;
     }
     pullRequestHeadRef() {
-        return process.env.GITHUB_HEAD_REF;
+        const fullName = github_1.context.payload.pull_request?.head?.repo
+            ?.full_name;
+        if (process.env.GITHUB_REPOSITORY === fullName) {
+            return process.env.GITHUB_HEAD_REF;
+        }
+        return fullName.replaceAll('/', ':');
     }
     isSupportedLockfile(filename) {
         const baseFileName = path_1.default.basename(filename);
