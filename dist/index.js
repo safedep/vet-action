@@ -33440,21 +33440,29 @@ class Vet {
             );
             const comment = `${reportContent}\n\n${marker}`;
             core.info('Adding vet report as a comment in the PR');
-            if (existingComment) {
-                await this.octokit.rest.issues.updateComment({
-                    repo: this.repoName(),
-                    owner: this.ownerName(),
-                    comment_id: existingComment.id,
-                    body: comment
-                });
+            // This is a write operation. The default GH token is readonly
+            // when PR is from a forked repo.
+            try {
+                if (existingComment) {
+                    await this.octokit.rest.issues.updateComment({
+                        repo: this.repoName(),
+                        owner: this.ownerName(),
+                        comment_id: existingComment.id,
+                        body: comment
+                    });
+                }
+                else {
+                    await this.octokit.rest.issues.createComment({
+                        repo: this.repoName(),
+                        owner: this.ownerName(),
+                        issue_number: this.config.pullRequestNumber,
+                        body: comment
+                    });
+                }
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             }
-            else {
-                await this.octokit.rest.issues.createComment({
-                    repo: this.repoName(),
-                    owner: this.ownerName(),
-                    issue_number: this.config.pullRequestNumber,
-                    body: comment
-                });
+            catch (ex) {
+                core.warning(`Unable to add a comment to the PR: ${ex.message}`);
             }
         }
         // Throw the exception if vet scan failed
