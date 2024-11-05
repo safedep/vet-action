@@ -494,8 +494,13 @@ export class Vet {
       throw new Error(`Unable to get changed files: ${response.status}`)
     }
 
+    // This is a valid case and happen frequently during development.
+    // We should not expect that head is always ahead of base. The side effect
+    // of this choice is, we may end up raising an issue that already exists
+    // in the base branch due to divergence. This is acceptable because even
+    // GitHub PR diff viewer shows the same in case of divergence.
     if (response.data.status !== 'ahead') {
-      throw new Error(`Head is not ahead of Base: ${response.data.status}`)
+      core.info(`Head is not ahead of Base: ${response.data.status}`)
     }
 
     if (!response.data.files) {
