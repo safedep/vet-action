@@ -68,16 +68,21 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 
 ## Cloud Mode
 
-`vet-action` provides integration with [SafeDep Cloud](https://docs.safedep.io/cloud). By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services such as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis). To use SafeDep Cloud integration, you need
+`vet-action` provides integration with [SafeDep Cloud](https://docs.safedep.io/cloud).
+By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services such
+as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+To use SafeDep Cloud integration, you need
 
 1. SafeDep Cloud Tenant Domain
 2. SafeDep Cloud API Key
 
-Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on getting the required information for activating cloud integration.
+Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on
+getting the required information for activating cloud integration.
 
 ## Configuration
 
-`vet-action` accepts following additional configuration for customizing how `vet` is invoked during scan
+`vet-action` accepts following additional configuration for customizing how
+`vet` is invoked during scan
 
 <!-- markdownlint-disable MD013 -->
 | GitHub Action Input  | Example Value                         | Notes                                             |
