@@ -440,7 +440,7 @@ export class Vet {
   private async getLatestRelease(): Promise<string> {
     let versionToUse = this.config.version ?? ''
     if (versionToUse.length === 0) {
-      versionToUse = 'v1.9.0'
+      versionToUse = 'v1.9.1'
     }
 
     return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
