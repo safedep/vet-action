@@ -33120,6 +33120,9 @@ async function run() {
             required: false,
             trimWhitespace: true
         });
+        const timeout = core.getInput('timeout', {
+            required: false
+        });
         const eventName = process.env.GITHUB_EVENT_NAME;
         const eventJson = JSON.parse(node_fs_1.default.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
         core.debug(`Running vet with policy: ${policy.length === 0 ? '<default>' : policy} cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`);
@@ -33129,6 +33132,7 @@ async function run() {
             policy,
             version,
             cloudMode,
+            timeout,
             pullRequestNumber: github_1.context.payload.pull_request?.number,
             pullRequestComment: true,
             exceptionFile,
@@ -33310,8 +33314,18 @@ class Vet {
     }
     async runOnPullRequest() {
         core.info('Running on pull request event');
-        // Find changed files
-        const changedFiles = await this.pullRequestGetChangedFiles();
+        // Find changed files. There are cases where this may throw an error
+        // because GitHub SDK seem to have inconsistency on what is `throw` vs `return
+        // We know of the empty commit case where an exception is thrown.
+        // https://github.com/safedep/vet-action/issues/90
+        let changedFiles = [];
+        try {
+            changedFiles = await this.pullRequestGetChangedFiles();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        }
+        catch (error) {
+            core.warning(`Unable to get changed files: ${error.message}`);
+        }
         core.info(`Found ${changedFiles.length} changed file(s)`);
         const changedLockFiles = changedFiles.filter(file => 
         // Filter by lockfiles that we support
@@ -33392,7 +33406,8 @@ class Vet {
             vetSarifReportPath,
             '--filter-suite',
             policyFilePath,
-            '--filter-fail'
+            '--filter-fail',
+            '--fail-fast'
         ];
         // Check if exceptionsFile is provided
         if (this.config.exceptionFile) {
@@ -33522,7 +33537,7 @@ class Vet {
     async getLatestRelease() {
         let versionToUse = this.config.version ?? '';
         if (versionToUse.length === 0) {
-            versionToUse = 'v1.8.3';
+            versionToUse = 'v1.9.0';
         }
         return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`;
     }
@@ -33634,6 +33649,9 @@ class Vet {
         args.push('--report-sync');
         args.push('--report-sync-project', process.env.GITHUB_REPOSITORY);
         args.push('--report-sync-project-version', process.env.GITHUB_REF_NAME);
+        core.info(`Activating malicious package analysis with timeout: ${this.config.timeout}`);
+        args.push('--malware');
+        args.push('--malware-analysis-timeout', `${this.config.timeout}s`);
     }
 }
 exports.Vet = Vet;

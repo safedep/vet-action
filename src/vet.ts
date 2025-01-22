@@ -26,6 +26,7 @@ interface VetConfig {
   pullRequestComment?: boolean
   exceptionFile?: string
   trustedRegistries?: string[]
+  timeout?: string
 }
 
 interface PullRequestFile {
@@ -136,8 +137,19 @@ export class Vet {
   private async runOnPullRequest(): Promise<string> {
     core.info('Running on pull request event')
 
-    // Find changed files
-    const changedFiles = await this.pullRequestGetChangedFiles()
+    // Find changed files. There are cases where this may throw an error
+    // because GitHub SDK seem to have inconsistency on what is `throw` vs `return
+    // We know of the empty commit case where an exception is thrown.
+    // https://github.com/safedep/vet-action/issues/90
+    let changedFiles: PullRequestFile[] = []
+    try {
+      changedFiles = await this.pullRequestGetChangedFiles()
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      core.warning(`Unable to get changed files: ${error.message}`)
+    }
+
     core.info(`Found ${changedFiles.length} changed file(s)`)
 
     const changedLockFiles = changedFiles.filter(
@@ -250,7 +262,8 @@ export class Vet {
       vetSarifReportPath,
       '--filter-suite',
       policyFilePath,
-      '--filter-fail'
+      '--filter-fail',
+      '--fail-fast'
     ]
 
     // Check if exceptionsFile is provided
@@ -427,7 +440,7 @@ export class Vet {
   private async getLatestRelease(): Promise<string> {
     let versionToUse = this.config.version ?? ''
     if (versionToUse.length === 0) {
-      versionToUse = 'v1.8.3'
+      versionToUse = 'v1.9.0'
     }
 
     return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
@@ -580,5 +593,11 @@ export class Vet {
       '--report-sync-project-version',
       process.env.GITHUB_REF_NAME as string
     )
+
+    core.info(
+      `Activating malicious package analysis with timeout: ${this.config.timeout}`
+    )
+    args.push('--malware')
+    args.push('--malware-analysis-timeout', `${this.config.timeout}s`)
   }
 }

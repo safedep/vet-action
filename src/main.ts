@@ -43,6 +43,10 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const timeout: string = core.getInput('timeout', {
+      required: false
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -62,6 +66,7 @@ export async function run(): Promise<void> {
       policy,
       version,
       cloudMode,
+      timeout,
       pullRequestNumber: context.payload.pull_request?.number,
       pullRequestComment: true,
       exceptionFile,
