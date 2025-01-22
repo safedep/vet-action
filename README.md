@@ -73,8 +73,8 @@ By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services
 as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
 To use SafeDep Cloud integration, you need
 
-1. SafeDep Cloud Tenant Domain
-2. SafeDep Cloud API Key
+- SafeDep Cloud Tenant Domain
+- SafeDep Cloud API Key
 
 Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on
 getting the required information for activating cloud integration.
