@@ -1,8 +1,6 @@
 # SafeDep GitHub Action
 
-<p align="center">
-    Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
-</p>
+> Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
 
 GitHub Action for integrating [vet](https://github.com/safedep/vet) in your
 workflow. Provides active protection against vulnerable, outdated, unpopular
