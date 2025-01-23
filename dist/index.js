@@ -32610,7 +32610,8 @@ function supportedLockfiles() {
         'go.mod',
         'pom.xml',
         'gradle.lockfile',
-        'requirements.txt'
+        'requirements.txt',
+        'pnpm-lock.yaml'
     ];
 }
 function getTempFilePath() {

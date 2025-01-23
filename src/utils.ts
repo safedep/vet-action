@@ -17,7 +17,8 @@ export function supportedLockfiles(): string[] {
     'go.mod',
     'pom.xml',
     'gradle.lockfile',
-    'requirements.txt'
+    'requirements.txt',
+    'pnpm-lock.yaml'
   ]
 }
 

@@ -5,8 +5,8 @@ description:
 author: 'SafeDep'
 
 branding:
-  icon: 'git-pull-request'
-  color: 'red'
+  icon: 'shield'
+  color: 'green'
 
 inputs:
   policy:
