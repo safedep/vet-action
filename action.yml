@@ -1,8 +1,7 @@
-name: SafeDep vet
+name: SafeDep
 description:
-  Run vet as a GitHub Action to vet your dependencies against OSS Supply Chain
-  attacks. Performs incremental vetting of changed dependencies in a pull
-  request.
+  Protect against vulnerable and malicious Open Source Software (OSS) dependencies
+  using policy as code based guardrails.
 author: 'SafeDep'
 
 branding:

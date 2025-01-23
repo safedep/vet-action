@@ -1,8 +1,18 @@
-# vet GitHub Action
+# SafeDep GitHub Action
 
-[vet](https://github.com/safedep/vet) is a tool for finding security risks
-in OSS components. For more details, refer to `vet` GitHub repository
-[https://github.com/safedep/vet](https://github.com/safedep/vet)
+<p align="center">
+    Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
+</p>
+
+GitHub Action for integrating [vet](https://github.com/safedep/vet) in your
+workflow. Provides active protection against vulnerable, outdated, unpopular
+and malicious OSS dependencies using policy as code based guardrails.
+
+![Example Screenshot](./docs/assets/vet-action-malysis-1.png)
+
+![CodeQL Analysis](https://github.com/safedep/vet-action/actions/workflows/codeql-analysis.yml/badge.svg)
+![Continue Integration](https://github.com/safedep/vet-action/actions/workflows/ci.yml/badge.svg)
+![vet OSS Components](https://github.com/safedep/vet-action/actions/workflows/vet.yml/badge.svg)
 
 ## Usage
 
