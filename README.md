@@ -20,7 +20,8 @@ and malicious OSS dependencies using policy as code based guardrails.
 ### Quick Start
 
 > Follow *quickstart* if you want to integrate `vet` as a step in your
-> existing GitHub actions workflow
+> existing GitHub actions workflow. Look at [Setup Instructions](#setup-instructions)
+> for step by step guide on how to integrate `vet` in your GitHub repository
 
 TLDR; add this GitHub action to vet your changed dependencies during pull request
 
@@ -39,8 +40,15 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
 The output of `vet-action` is a [SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
 report that can be uploaded to GitHub Code Scanning
 
+> **Note**: `upload-sarif` action requires GitHub Code Scanning to be enabled.
+> This is available for public repositories and for private repositories with
+> GitHub Advanced Security enabled.
+
 ```yaml
 - name: Upload SARIF
+  permissions:
+    contents: read
+    security-events: write
   uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: ${{ steps.vet.outputs.report }}
