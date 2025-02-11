@@ -34,15 +34,15 @@ inputs:
     required: false
   timeout:
     description: |
-      Timeout in seconds for vet to wait for external service results to be available.
-      For malicious package analysis, this set the maximum time to wait for the analysis
-      results to be available.
+      Timeout in seconds for vet to wait for external service results to be
+      available. For malicious package analysis, this set the maximum time
+      to wait for the analysis results to be available.
     required: false
     default: 300
   upload-sarif:
     description: |
-      Upload SARIF report as an artifact associated with the workflow run. This is used
-      only during full scan on push or schedule.
+      Upload SARIF report as an artifact associated with the workflow run.
+      This is used only during full scan on push or schedule.
     default: true
     required: false
 
