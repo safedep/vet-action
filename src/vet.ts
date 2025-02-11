@@ -16,6 +16,9 @@ const exec = require('@actions/exec')
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const tc = require('@actions/tool-cache')
 
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const { DefaultArtifactClient } = require('@actions/artifact')
+
 interface VetConfig {
   apiKey?: string
   tenant?: string
@@ -27,6 +30,8 @@ interface VetConfig {
   exceptionFile?: string
   trustedRegistries?: string[]
   timeout?: string
+  uploadSarif?: boolean
+  addStepSummary?: boolean
 }
 
 interface PullRequestFile {
@@ -93,8 +98,14 @@ export class Vet {
   private async runOnPush(): Promise<string> {
     core.info('Running on push event')
 
-    const vetSarifReportPath = getTempFilePath()
+    const vetSarifReportDir = getTempFilePath()
+    const vetSarifReportPath = path.join(vetSarifReportDir, 'vet.sarif')
+    const vetMarkdownSummaryReportPath = getTempFilePath()
     const policyFilePath = this.getPolicyFilePath()
+
+    if (!fs.existsSync(vetSarifReportDir)) {
+      fs.mkdirSync(vetSarifReportDir, { recursive: true })
+    }
 
     core.info(`Using policy from path: ${policyFilePath}`)
 
@@ -102,6 +113,8 @@ export class Vet {
       'scan',
       '--report-sarif',
       vetSarifReportPath,
+      '--report-markdown-summary',
+      vetMarkdownSummaryReportPath,
       '--filter-suite',
       policyFilePath
     ]
@@ -127,8 +140,79 @@ export class Vet {
 
     if (!fs.existsSync(vetSarifReportPath)) {
       throw new Error(
-        `vet markdown report file not found at ${vetSarifReportPath}`
+        `vet SARIF report file not found at ${vetSarifReportPath}`
       )
+    }
+
+    if (!fs.existsSync(vetMarkdownSummaryReportPath)) {
+      throw new Error(
+        `vet markdown summary report file not found at ${vetMarkdownSummaryReportPath}`
+      )
+    }
+
+    // Upload SARIF report if allowed by the configuration
+    if (this.config.uploadSarif) {
+      const artifactClient = new DefaultArtifactClient()
+      const artifactName = 'vet-sarif-report'
+      const artifactPath = vetSarifReportPath
+
+      core.info(
+        `Uploading SARIF report as artifact with name: ${artifactName} from: ${artifactPath}`
+      )
+
+      try {
+        await artifactClient.uploadArtifact(
+          artifactName,
+          [artifactPath],
+          vetSarifReportDir,
+          {
+            continueOnError: true
+          }
+        )
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(
+          `Unable to upload SARIF report as artifact: ${error.message}`
+        )
+      }
+    }
+
+    // Add the markdown summary to the workflow output
+    let markdownSummary = fs.readFileSync(vetMarkdownSummaryReportPath, {
+      encoding: 'utf-8'
+    })
+
+    // Add step summary if allowed by the configuration
+    // NOTE: It will overwrite the buffer for step summary and content
+    // is truncated if it exceeds the limit.
+    if (this.config.addStepSummary) {
+      try {
+        core.info(
+          `Setting markdown summary as output, content length: ${markdownSummary.length}`
+        )
+
+        // Step summary has limits
+        // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
+        const stepSummaryLimit = 1024 * 1024 - 32
+        if (markdownSummary.length > stepSummaryLimit) {
+          core.warning(
+            `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
+          )
+
+          markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
+        }
+
+        // https://github.com/actions/toolkit/blob/main/packages/core/README.md
+        core.summary.clear()
+        core.summary.addRaw(markdownSummary, true)
+        core.summary.write({ overwrite: true })
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(
+          `Unable to set markdown summary as output: ${error.message}`
+        )
+      }
     }
 
     return vetSarifReportPath
@@ -393,6 +477,15 @@ export class Vet {
     return match[1]
   }
 
+  private async getLatestVetBinaryVersion(): Promise<string> {
+    const latest = await this.octokit.rest.repos.getLatestRelease({
+      owner: 'safedep',
+      repo: 'vet'
+    })
+
+    return latest.data.tag_name
+  }
+
   private async runVet(
     args: string[],
     silent = false,
@@ -440,8 +533,18 @@ export class Vet {
   private async getLatestRelease(): Promise<string> {
     let versionToUse = this.config.version ?? ''
     if (versionToUse.length === 0) {
-      versionToUse = 'v1.9.1'
+      try {
+        versionToUse = await this.getLatestVetBinaryVersion()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(`Unable to get latest release: ${error.message}`)
+
+        versionToUse = 'v1.9.2'
+        core.warning(`Falling back to default version: ${versionToUse}`)
+      }
     }
+
+    // TODO: We need to handle other platforms as well
 
     return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
   }

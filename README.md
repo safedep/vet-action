@@ -1,6 +1,10 @@
 # SafeDep GitHub Action
 
-> Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
+<!-- markdownlint-disable MD033 -->
+> Created and maintained by
+> <b><a href="https://safedep.io/">https://safedep.io</a></b>
+> with contributions from the community 🚀
+<!-- markdownlint-enable MD033 -->
 
 ![CodeQL Analysis](https://github.com/safedep/vet-action/actions/workflows/codeql-analysis.yml/badge.svg)
 ![Continue Integration](https://github.com/safedep/vet-action/actions/workflows/ci.yml/badge.svg)
@@ -84,16 +88,19 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 
 ## Cloud Mode
 
+<!-- markdownlint-disable MD013 -->
 `vet-action` provides integration with [SafeDep Cloud](https://docs.safedep.io/cloud).
 By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services such
 as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+<!-- markdownlint-enable MD013 -->
+
 To use SafeDep Cloud integration, you need
 
-- SafeDep Cloud Tenant Domain
-- SafeDep Cloud API Key
+- SafeDep Cloud Tenant Domain (e.g. `default-team.example-org.safedep.io`)
+- SafeDep Cloud API Key (e.g. `sfd_01234567890abcdefghijk`)
 
-Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on
-getting the required information for activating cloud integration.
+Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart)
+guide on getting the required information for activating cloud integration.
 
 ## Configuration
 
@@ -110,10 +117,24 @@ getting the required information for activating cloud integration.
 | `cloud`              | `true`                                | Enable integration with SafeDep Cloud             |
 | `cloud-tenant`       | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                       |
 | `cloud-key`          | `sfd_xxxx`                            | SafeDep Cloud API Key                             |
+| `upload-sarif`       | `true`                                | Upload SARIF report as artifact on push           |
+| `add-step-summary`   | `true`                                | Add job step summary report on push               |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
 <!-- markdownlint-enable MD013 -->
+
+### Trusted Registries
+
+The `trusted-registries` configuration can be used to add specific registry URLs
+into allow list while checking for lockfile inconsistencies. Example:
+
+```yaml
+trusted-registries: |
+  https://registry.npmjs.org/strip-ansi
+  https://registry.npmjs.org/string-width
+  https://private.self-hosted.local
+```
 
 ## Support
 
