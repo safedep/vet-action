@@ -1,8 +1,10 @@
 # SafeDep GitHub Action
 
+<!-- markdownlint-disable MD033 -->
 > Created and maintained by
 > <b><a href="https://safedep.io/">https://safedep.io</a></b>
 > with contributions from the community 🚀
+<!-- markdownlint-enable MD033 -->
 
 ![CodeQL Analysis](https://github.com/safedep/vet-action/actions/workflows/codeql-analysis.yml/badge.svg)
 ![Continue Integration](https://github.com/safedep/vet-action/actions/workflows/ci.yml/badge.svg)
@@ -97,8 +99,8 @@ To use SafeDep Cloud integration, you need
 - SafeDep Cloud Tenant Domain (e.g. `default-team.example-org.safedep.io`)
 - SafeDep Cloud API Key (e.g. `sfd_01234567890abcdefghijk`)
 
-Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on
-getting the required information for activating cloud integration.
+Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart)
+guide on getting the required information for activating cloud integration.
 
 ## Configuration
 
