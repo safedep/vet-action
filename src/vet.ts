@@ -182,8 +182,14 @@ export class Vet {
     })
 
     try {
-      core.info(`Setting markdown summary as output`)
-      core.setOutput('vet-markdown-summary', markdownSummary)
+      core.info(`Setting markdown summary as commit comment`)
+      this.octokit.rest.repos.createCommitComment({
+        repo: this.repoName(),
+        owner: this.ownerName(),
+        commit_sha: context.sha,
+        body: markdownSummary
+      })
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       core.warning(`Unable to set markdown summary as output: ${error.message}`)
