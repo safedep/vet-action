@@ -97,9 +97,14 @@ export class Vet {
   private async runOnPush(): Promise<string> {
     core.info('Running on push event')
 
-    const vetSarifReportPath = getTempFilePath()
+    const vetSarifReportDir = getTempFilePath()
+    const vetSarifReportPath = path.join(vetSarifReportDir, 'vet.sarif')
     const vetMarkdownSummaryReportPath = getTempFilePath()
     const policyFilePath = this.getPolicyFilePath()
+
+    if (!fs.existsSync(vetSarifReportDir)) {
+      fs.mkdirSync(vetSarifReportDir, { recursive: true })
+    }
 
     core.info(`Using policy from path: ${policyFilePath}`)
 
@@ -155,9 +160,14 @@ export class Vet {
       )
 
       try {
-        await artifactClient.uploadArtifact(artifactName, [artifactPath], '.', {
-          continueOnError: true
-        })
+        await artifactClient.uploadArtifact(
+          artifactName,
+          [artifactPath],
+          vetSarifReportDir,
+          {
+            continueOnError: true
+          }
+        )
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         core.warning(
@@ -172,6 +182,7 @@ export class Vet {
     })
 
     try {
+      core.info(`Setting markdown summary as output`)
       core.setOutput('vet-markdown-summary', markdownSummary)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
