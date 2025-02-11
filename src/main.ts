@@ -76,7 +76,7 @@ export async function run(): Promise<void> {
       exceptionFile,
       uploadSarif,
       trustedRegistries: trustedRegistries
-        .split(',')
+        .split(/,|\n/)
         .map(r => r.trim())
         .filter(r => r.length > 0)
     })

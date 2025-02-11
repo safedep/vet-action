@@ -115,6 +115,18 @@ getting the required information for activating cloud integration.
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
 <!-- markdownlint-enable MD013 -->
 
+### Trusted Registries
+
+The `trusted-registries` configuration can be used to add specific registry URLs
+into allow list while checking for lockfile inconsistencies. Example:
+
+```yaml
+trusted-registries: |
+  https://registry.npmjs.org/strip-ansi
+  https://registry.npmjs.org/string-width
+  https://private.self-hosted.local
+```
+
 ## Support
 
 - Raise issues related to GitHub Action at [https://github.com/safedep/vet-action/issues](https://github.com/safedep/vet-action/issues)
