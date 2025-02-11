@@ -51,6 +51,10 @@ export async function run(): Promise<void> {
       required: false
     })
 
+    const addStepSummary: boolean = core.getBooleanInput('add-step-summary', {
+      required: false
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -75,6 +79,7 @@ export async function run(): Promise<void> {
       pullRequestComment: true,
       exceptionFile,
       uploadSarif,
+      addStepSummary,
       trustedRegistries: trustedRegistries
         .split(/,|\n/)
         .map(r => r.trim())

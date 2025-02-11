@@ -31,6 +31,7 @@ interface VetConfig {
   trustedRegistries?: string[]
   timeout?: string
   uploadSarif?: boolean
+  addStepSummary?: boolean
 }
 
 interface PullRequestFile {
@@ -181,31 +182,37 @@ export class Vet {
       encoding: 'utf-8'
     })
 
-    try {
-      core.info(
-        `Setting markdown summary as output, content length: ${markdownSummary.length}`
-      )
-
-      // Step summary has limits
-      // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
-      const stepSummaryLimit = 1024 * 1024 - 32
-      if (markdownSummary.length > stepSummaryLimit) {
-        core.warning(
-          `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
+    // Add step summary if allowed by the configuration
+    // NOTE: It will overwrite the buffer for step summary and content
+    // is truncated if it exceeds the limit.
+    if (this.config.addStepSummary) {
+      try {
+        core.info(
+          `Setting markdown summary as output, content length: ${markdownSummary.length}`
         )
 
-        markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
+        // Step summary has limits
+        // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
+        const stepSummaryLimit = 1024 * 1024 - 32
+        if (markdownSummary.length > stepSummaryLimit) {
+          core.warning(
+            `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
+          )
+
+          markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
+        }
+
+        // https://github.com/actions/toolkit/blob/main/packages/core/README.md
+        core.summary.clear()
+        core.summary.addRaw(markdownSummary, true)
+        core.summary.write({ overwrite: true })
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(
+          `Unable to set markdown summary as output: ${error.message}`
+        )
       }
-
-      // https://github.com/actions/toolkit/blob/main/packages/core/README.md
-      core.summary.clear()
-      core.summary.addHeading('vet Summary')
-      core.summary.addRaw(markdownSummary, true)
-      core.summary.write({ overwrite: true })
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {
-      core.warning(`Unable to set markdown summary as output: ${error.message}`)
     }
 
     return vetSarifReportPath

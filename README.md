@@ -117,6 +117,8 @@ guide on getting the required information for activating cloud integration.
 | `cloud`              | `true`                                | Enable integration with SafeDep Cloud             |
 | `cloud-tenant`       | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                       |
 | `cloud-key`          | `sfd_xxxx`                            | SafeDep Cloud API Key                             |
+| `upload-sarif`       | `true`                                | Upload SARIF report as artifact on push           |
+| `add-step-summary`   | `true`                                | Add job step summary report on push               |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format

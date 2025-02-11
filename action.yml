@@ -45,6 +45,12 @@ inputs:
       This is used only during full scan on push or schedule.
     default: true
     required: false
+  add-step-summary:
+    description: |
+      Add a summary of the vet scan as a step in the workflow run.
+      This is used only during full scan on push or schedule.
+    default: true
+    required: false
 
 outputs:
   report:
