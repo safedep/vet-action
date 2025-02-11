@@ -1,7 +1,7 @@
 name: SafeDep
 description:
-  Protect against vulnerable and malicious Open Source Software (OSS) dependencies
-  using policy as code based guardrails.
+  Protect against vulnerable and malicious Open Source Software (OSS)
+  dependencies using policy as code based guardrails.
 author: 'SafeDep'
 
 branding:
@@ -39,6 +39,12 @@ inputs:
       results to be available.
     required: false
     default: 300
+  upload-sarif:
+    description: |
+      Upload SARIF report as an artifact associated with the workflow run. This is used
+      only during full scan on push or schedule.
+    default: true
+    required: false
 
 outputs:
   report:

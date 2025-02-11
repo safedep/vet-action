@@ -16,6 +16,9 @@ const exec = require('@actions/exec')
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const tc = require('@actions/tool-cache')
 
+// eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const { DefaultArtifactClient } = require('@actions/artifact')
+
 interface VetConfig {
   apiKey?: string
   tenant?: string
@@ -27,6 +30,7 @@ interface VetConfig {
   exceptionFile?: string
   trustedRegistries?: string[]
   timeout?: string
+  uploadSarif?: boolean
 }
 
 interface PullRequestFile {
@@ -94,6 +98,7 @@ export class Vet {
     core.info('Running on push event')
 
     const vetSarifReportPath = getTempFilePath()
+    const vetMarkdownSummaryReportPath = getTempFilePath()
     const policyFilePath = this.getPolicyFilePath()
 
     core.info(`Using policy from path: ${policyFilePath}`)
@@ -102,6 +107,8 @@ export class Vet {
       'scan',
       '--report-sarif',
       vetSarifReportPath,
+      '--report-markdown-summary',
+      vetMarkdownSummaryReportPath,
       '--filter-suite',
       policyFilePath
     ]
@@ -127,8 +134,48 @@ export class Vet {
 
     if (!fs.existsSync(vetSarifReportPath)) {
       throw new Error(
-        `vet markdown report file not found at ${vetSarifReportPath}`
+        `vet SARIF report file not found at ${vetSarifReportPath}`
       )
+    }
+
+    if (!fs.existsSync(vetMarkdownSummaryReportPath)) {
+      throw new Error(
+        `vet markdown summary report file not found at ${vetMarkdownSummaryReportPath}`
+      )
+    }
+
+    // Upload SARIF report if allowed by the configuration
+    if (this.config.uploadSarif) {
+      const artifactClient = new DefaultArtifactClient()
+      const artifactName = 'vet-sarif-report'
+      const artifactPath = vetSarifReportPath
+
+      core.info(
+        `Uploading SARIF report as artifact with name: ${artifactName} from: ${artifactPath}`
+      )
+
+      try {
+        await artifactClient.uploadArtifact(artifactName, [artifactPath], '.', {
+          continueOnError: true
+        })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(
+          `Unable to upload SARIF report as artifact: ${error.message}`
+        )
+      }
+    }
+
+    // Add the markdown summary to the workflow output
+    const markdownSummary = fs.readFileSync(vetMarkdownSummaryReportPath, {
+      encoding: 'utf-8'
+    })
+
+    try {
+      core.setOutput('vet-markdown-summary', markdownSummary)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      core.warning(`Unable to set markdown summary as output: ${error.message}`)
     }
 
     return vetSarifReportPath
@@ -393,6 +440,15 @@ export class Vet {
     return match[1]
   }
 
+  private async getLatestVetBinaryVersion(): Promise<string> {
+    const latest = await this.octokit.rest.repos.getLatestRelease({
+      owner: 'safedep',
+      repo: 'vet'
+    })
+
+    return latest.data.tag_name.replace(/^v/, '')
+  }
+
   private async runVet(
     args: string[],
     silent = false,
@@ -440,8 +496,18 @@ export class Vet {
   private async getLatestRelease(): Promise<string> {
     let versionToUse = this.config.version ?? ''
     if (versionToUse.length === 0) {
-      versionToUse = 'v1.9.1'
+      try {
+        versionToUse = await this.getLatestVetBinaryVersion()
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (error: any) {
+        core.warning(`Unable to get latest release: ${error.message}`)
+
+        versionToUse = 'v1.9.2'
+        core.warning(`Falling back to default version: ${versionToUse}`)
+      }
     }
+
+    // TODO: We need to handle other platforms as well
 
     return `https://github.com/safedep/vet/releases/download/${versionToUse}/vet_Linux_x86_64.tar.gz`
   }
