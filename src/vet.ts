@@ -177,15 +177,31 @@ export class Vet {
     }
 
     // Add the markdown summary to the workflow output
-    const markdownSummary = fs.readFileSync(vetMarkdownSummaryReportPath, {
+    let markdownSummary = fs.readFileSync(vetMarkdownSummaryReportPath, {
       encoding: 'utf-8'
     })
 
     try {
-      core.info(`Setting markdown summary as output`)
+      core.info(
+        `Setting markdown summary as output, content length: ${markdownSummary.length}`
+      )
 
+      // Step summary has limits
+      // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
+      const stepSummaryLimit = 1024 * 1024 - 32
+      if (markdownSummary.length > stepSummaryLimit) {
+        core.warning(
+          `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
+        )
+
+        markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
+      }
+
+      // https://github.com/actions/toolkit/blob/main/packages/core/README.md
+      core.summary.clear()
       core.summary.addHeading('vet Summary')
-      core.summary.addRaw(markdownSummary)
+      core.summary.addRaw(markdownSummary, true)
+      core.summary.write({ overwrite: true })
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
