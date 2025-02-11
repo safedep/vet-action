@@ -498,6 +498,8 @@ export class Vet {
     if (versionToUse.length === 0) {
       try {
         versionToUse = await this.getLatestVetBinaryVersion()
+        versionToUse = `v${versionToUse}`
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (error: any) {
         core.warning(`Unable to get latest release: ${error.message}`)
