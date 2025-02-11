@@ -1,6 +1,8 @@
 # SafeDep GitHub Action
 
-> Created and maintained by <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions from the community 🚀
+> Created and maintained by
+> <b><a href="https://safedep.io/">https://safedep.io</a></b>
+> with contributions from the community 🚀
 
 ![CodeQL Analysis](https://github.com/safedep/vet-action/actions/workflows/codeql-analysis.yml/badge.svg)
 ![Continue Integration](https://github.com/safedep/vet-action/actions/workflows/ci.yml/badge.svg)
@@ -84,13 +86,16 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 
 ## Cloud Mode
 
+<!-- markdownlint-disable MD013 -->
 `vet-action` provides integration with [SafeDep Cloud](https://docs.safedep.io/cloud).
 By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services such
 as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+<!-- markdownlint-enable MD013 -->
+
 To use SafeDep Cloud integration, you need
 
-- SafeDep Cloud Tenant Domain
-- SafeDep Cloud API Key
+- SafeDep Cloud Tenant Domain (e.g. `default-team.example-org.safedep.io`)
+- SafeDep Cloud API Key (e.g. `sfd_01234567890abcdefghijk`)
 
 Refer to [SafeDep Cloud Quickstart](https://docs.safedep.io/cloud/quickstart) guide on
 getting the required information for activating cloud integration.
