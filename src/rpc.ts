@@ -5,6 +5,7 @@ import { GitHubCommentsProxyService } from '@buf/safedep_api.bufbuild_es/safedep
 const ghcpApiBaseUrl = 'https://ghcp-integrations.safedep.io'
 
 function authenticationInterceptor(token: string) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (next: any) => async (req: any) => {
     req.header.set('authorization', `Bearer ${token}`)
     return await next(req)

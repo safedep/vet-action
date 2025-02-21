@@ -6,31 +6,32 @@
  * variables following the pattern `INPUT_<INPUT_NAME>`.
  */
 
+import { describe, it, expect, beforeEach, vi, SpyInstance } from 'vitest'
 import * as core from '@actions/core'
 import * as main from '../src/main'
 
 // Mock the action's main function
-const runMock = jest.spyOn(main, 'run')
+const runMock = vi.spyOn(main, 'run')
 
 // Other utilities
 const timeRegex = /^\d{2}:\d{2}:\d{2}/
 
 // Mock the GitHub Actions core library
-let debugMock: jest.SpyInstance
-let errorMock: jest.SpyInstance
-let getInputMock: jest.SpyInstance
-let setFailedMock: jest.SpyInstance
-let setOutputMock: jest.SpyInstance
+let debugMock: SpyInstance
+let errorMock: SpyInstance
+let getInputMock: SpyInstance
+let setFailedMock: SpyInstance
+let setOutputMock: SpyInstance
 
 describe('action', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
-    debugMock = jest.spyOn(core, 'debug').mockImplementation()
-    errorMock = jest.spyOn(core, 'error').mockImplementation()
-    getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
-    setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
-    setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
+    debugMock = vi.spyOn(core, 'debug').mockImplementation()
+    errorMock = vi.spyOn(core, 'error').mockImplementation()
+    getInputMock = vi.spyOn(core, 'getInput').mockImplementation()
+    setFailedMock = vi.spyOn(core, 'setFailed').mockImplementation()
+    setOutputMock = vi.spyOn(core, 'setOutput').mockImplementation()
   })
 
   it('sets the output when the action succeeds', async () => {

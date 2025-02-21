@@ -1,12 +1,13 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Vet } from './vet'
 
 // Mock external dependencies
-jest.mock('@actions/core')
-jest.mock('@actions/github')
-jest.mock('node:fs')
-jest.mock('@actions/exec')
-jest.mock('@actions/tool-cache')
-jest.mock('@actions/artifact')
+vi.mock('@actions/core')
+vi.mock('@actions/github')
+vi.mock('node:fs')
+vi.mock('@actions/exec')
+vi.mock('@actions/tool-cache')
+vi.mock('@actions/artifact')
 
 // Mock environment variables
 const mockEnv = {
@@ -24,7 +25,7 @@ describe('Vet', () => {
 
   beforeEach(() => {
     // Reset all mocks before each test
-    jest.clearAllMocks()
+    vi.clearAllMocks()
 
     // Setup environment variables
     process.env = { ...mockEnv }
@@ -43,9 +44,9 @@ describe('Vet', () => {
     const mockOctokit = {
       rest: {
         issues: {
-          listComments: jest.fn(),
-          createComment: jest.fn(),
-          updateComment: jest.fn()
+          listComments: vi.fn(),
+          createComment: vi.fn(),
+          updateComment: vi.fn()
         }
       }
     }
@@ -127,24 +128,24 @@ describe('Vet', () => {
     beforeEach(() => {
       // Mock vet.getLatestBinary
       // @ts-expect-error - Mocking private method
-      vet.getLatestRelease = jest.fn().mockResolvedValue('1.2.3')
+      vet.getLatestRelease = vi.fn().mockResolvedValue('1.2.3')
 
       // Mock vet.downloadBinary
       // @ts-expect-error - Mocking private method
-      vet.downloadBinary = jest.fn().mockResolvedValue('Mock Binary Path')
+      vet.downloadBinary = vi.fn().mockResolvedValue('Mock Binary Path')
 
       // Mock vet.extractBinary
       // @ts-expect-error - Mocking private method
-      vet.extractBinary = jest.fn().mockResolvedValue('Mock Binary Path')
+      vet.extractBinary = vi.fn().mockResolvedValue('Mock Binary Path')
 
       // Mock vet.runVet
       // @ts-expect-error - Mocking private method
-      vet.runVet = jest.fn().mockResolvedValue('Version: 1.2.3')
+      vet.runVet = vi.fn().mockResolvedValue('Version: 1.2.3')
     })
 
     it('should handle no changed files in PR', async () => {
       // @ts-expect-error - Mocking private method
-      vet.pullRequestGetChangedFiles = jest.fn().mockResolvedValue([])
+      vet.pullRequestGetChangedFiles = vi.fn().mockResolvedValue([])
 
       const result = await vet.run('pull_request', '')
       expect(result).toBe('')
@@ -163,7 +164,7 @@ describe('Vet', () => {
       ]
 
       // @ts-expect-error - Mocking private methods
-      vet.pullRequestGetChangedFiles = jest.fn().mockResolvedValue(changedFiles)
+      vet.pullRequestGetChangedFiles = vi.fn().mockResolvedValue(changedFiles)
 
       const result = await vet.run('pull_request', '')
       expect(result).toBe('')
