@@ -10,6 +10,8 @@ import {
   supportedLockfiles
 } from './utils'
 import { createGitHubCommentsProxyServiceClient } from './rpc'
+import { GitHubCommentsProxyService } from '@buf/safedep_api.bufbuild_es/safedep/services/ghcp/v1/ghcp_pb'
+import { Client } from '@connectrpc/connect'
 
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
@@ -47,10 +49,14 @@ interface PullRequestFile {
 export class Vet {
   private vetBinaryPath: string
   private octokit: InstanceType<typeof GitHub>
+  private commentsProxyClient: Client<typeof GitHubCommentsProxyService>
 
   constructor(private config: VetConfig) {
     this.vetBinaryPath = ''
     this.octokit = getOctokit(process.env.GITHUB_TOKEN as string)
+    this.commentsProxyClient = createGitHubCommentsProxyServiceClient(
+      process.env.GITHUB_TOKEN as string
+    )
   }
 
   // Run vet, generate SARIF report and return the path to the report if
@@ -736,8 +742,7 @@ export class Vet {
     existingComment: boolean,
     prNumber: number
   ): Promise<void> {
-    const client = createGitHubCommentsProxyServiceClient()
-    const response = await client.createPullRequestComment({
+    const response = await this.commentsProxyClient.createPullRequestComment({
       body: comment,
       tag: existingComment ? marker : '',
       prNumber: prNumber.toString(),
