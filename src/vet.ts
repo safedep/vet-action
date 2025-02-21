@@ -9,6 +9,7 @@ import {
   isGithubRunnerDebug,
   supportedLockfiles
 } from './utils'
+import { createGitHubCommentsProxyServiceClient } from './rpc'
 
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
@@ -32,6 +33,7 @@ interface VetConfig {
   timeout?: string
   uploadSarif?: boolean
   addStepSummary?: boolean
+  enableGitHubCommentsProxy?: boolean
 }
 
 interface PullRequestFile {
@@ -707,6 +709,42 @@ export class Vet {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (ex: any) {
       core.warning(`Unable to add a comment to the PR: ${ex.message}`)
+
+      try {
+        if (this.config.enableGitHubCommentsProxy) {
+          core.info('Using GitHub Comments Proxy to add a comment to the PR')
+
+          await this.addOrUpdatePullRequestCommentWithGitHubCommentsProxy(
+            comment,
+            marker,
+            existingComment ? true : false,
+            this.config.pullRequestNumber as number
+          )
+        }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } catch (iex: any) {
+        core.warning(
+          `Unable to add a comment to the PR with GitHub Comments Proxy: ${iex.message}`
+        )
+      }
     }
+  }
+
+  private async addOrUpdatePullRequestCommentWithGitHubCommentsProxy(
+    comment: string,
+    marker: string,
+    existingComment: boolean,
+    prNumber: number
+  ): Promise<void> {
+    const client = createGitHubCommentsProxyServiceClient()
+    const response = await client.createPullRequestComment({
+      body: comment,
+      tag: existingComment ? marker : '',
+      prNumber: prNumber.toString(),
+      repo: this.repoName(),
+      owner: this.ownerName()
+    })
+
+    core.info(`Created or updated comment with id: ${response.commentId}`)
   }
 }

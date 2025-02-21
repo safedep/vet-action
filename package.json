@@ -56,6 +56,9 @@
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@buf|@connectrpc)/)"
+    ],
     "coverageReporters": [
       "json-summary",
       "text",

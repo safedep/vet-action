@@ -55,6 +55,13 @@ export async function run(): Promise<void> {
       required: false
     })
 
+    const enableGitHubCommentsProxy: boolean = core.getBooleanInput(
+      'enable-comments-proxy',
+      {
+        required: false
+      }
+    )
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -80,6 +87,7 @@ export async function run(): Promise<void> {
       exceptionFile,
       uploadSarif,
       addStepSummary,
+      enableGitHubCommentsProxy,
       trustedRegistries: trustedRegistries
         .split(/,|\n/)
         .map(r => r.trim())
