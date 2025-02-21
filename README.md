@@ -108,21 +108,35 @@ guide on getting the required information for activating cloud integration.
 `vet` is invoked during scan
 
 <!-- markdownlint-disable MD013 -->
-| GitHub Action Input  | Example Value                         | Notes                                             |
-| -------------------- | ------------------------------------- | ------------------------------------------------- |
-| `policy`             | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)     |
-| `exception-file`     | `config/exceptions.yml`               | Path to `vet` exception YAML file                 |
-| `trusted-registries` | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs        |
-| `timeout`            | `300`                                 | Max time in seconds to wait for external services |
-| `cloud`              | `true`                                | Enable integration with SafeDep Cloud             |
-| `cloud-tenant`       | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                       |
-| `cloud-key`          | `sfd_xxxx`                            | SafeDep Cloud API Key                             |
-| `upload-sarif`       | `true`                                | Upload SARIF report as artifact on push           |
-| `add-step-summary`   | `true`                                | Add job step summary report on push               |
+| GitHub Action Input     | Example Value                         | Notes                                                         |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| `policy`                | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)                 |
+| `exception-file`        | `config/exceptions.yml`               | Path to `vet` exception YAML file                             |
+| `trusted-registries`    | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs                    |
+| `timeout`               | `300`                                 | Max time in seconds to wait for external services             |
+| `cloud`                 | `true`                                | Enable integration with SafeDep Cloud                         |
+| `cloud-tenant`          | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                                   |
+| `cloud-key`             | `sfd_xxxx`                            | SafeDep Cloud API Key                                         |
+| `upload-sarif`          | `true`                                | Upload SARIF report as artifact on push                       |
+| `add-step-summary`      | `true`                                | Add job step summary report on push                           |
+| `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
 <!-- markdownlint-enable MD013 -->
+
+### Comments Proxy Server
+
+The `enable-comments-proxy` configuration can be used to enable Comments Proxy
+Server to create comments on GitHub PRs. This is required when the action is
+invoked in a PR from a forked repository due to limitation on `$GITHUB_TOKEN`. See
+[ghcp](https://github.com/safedep/ghcp) for more details.
+
+**SECURITY NOTE**: Comments proxy uses `$GITHUB_TOKEN` for authentication to verify
+the request is from a GitHub Actions workflow associated with the repository. When enable,
+`vet-action` will call Comments Proxy Server with `$GITHUB_TOKEN` available in the workflow.
+This will be used *ONLY* when `vet-action` fails to call GitHub API due to the limitation
+on `$GITHUB_TOKEN`.
 
 ### Trusted Registries
 

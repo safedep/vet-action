@@ -402,45 +402,8 @@ export class Vet {
         encoding: 'utf-8'
       })
 
-      const comments = await this.octokit.rest.issues.listComments({
-        repo: this.repoName(),
-        owner: this.ownerName(),
-        issue_number: this.config.pullRequestNumber as number,
-        per_page: 100
-      })
-
       const marker = `<!-- vet-report-pr-comment -->`
-      const existingComment = comments.data.find(
-        comment => comment.body?.includes(marker) // eslint-disable-line prettier/prettier
-      )
-
-      const comment = `${reportContent}\n\n${marker}`
-
-      core.info('Adding vet report as a comment in the PR')
-
-      // This is a write operation. The default GH token is readonly
-      // when PR is from a forked repo.
-      try {
-        if (existingComment) {
-          await this.octokit.rest.issues.updateComment({
-            repo: this.repoName(),
-            owner: this.ownerName(),
-            comment_id: existingComment.id,
-            body: comment
-          })
-        } else {
-          await this.octokit.rest.issues.createComment({
-            repo: this.repoName(),
-            owner: this.ownerName(),
-            issue_number: this.config.pullRequestNumber as number,
-            body: comment
-          })
-        }
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (ex: any) {
-        core.warning(`Unable to add a comment to the PR: ${ex.message}`)
-      }
+      await this.addOrUpdatePullRequestComment(reportContent, marker)
     }
 
     // Throw the exception if vet scan failed
@@ -702,5 +665,44 @@ export class Vet {
     )
     args.push('--malware')
     args.push('--malware-analysis-timeout', `${this.config.timeout}s`)
+  }
+
+  private async addOrUpdatePullRequestComment(reportContent: string, marker: string): Promise<void> {
+    core.info('Adding vet report as a comment in the PR')
+
+    const comments = await this.octokit.rest.issues.listComments({
+      repo: this.repoName(),
+      owner: this.ownerName(),
+      issue_number: this.config.pullRequestNumber as number,
+      per_page: 100
+    })
+
+    const existingComment = comments.data.find(
+      comment => comment.body?.includes(marker)
+    )
+
+    const comment = `${reportContent}\n\n${marker}`
+
+    // This is a write operation. The default GH token is readonly
+    // when PR is from a forked repo.
+    try {
+      if (existingComment) {
+        await this.octokit.rest.issues.updateComment({
+          repo: this.repoName(),
+          owner: this.ownerName(),
+          comment_id: existingComment.id,
+          body: comment
+        })
+      } else {
+        await this.octokit.rest.issues.createComment({
+          repo: this.repoName(),
+          owner: this.ownerName(),
+          issue_number: this.config.pullRequestNumber as number,
+          body: comment
+        })
+      }
+    } catch (ex: any) {
+      core.warning(`Unable to add a comment to the PR: ${ex.message}`)
+    }
   }
 }
