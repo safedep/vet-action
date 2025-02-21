@@ -370,6 +370,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
+@buf/bufbuild_protovalidate.bufbuild_es
+
+@buf/safedep_api.bufbuild_es
+
+@bufbuild/protobuf
+(Apache-2.0 AND BSD-3-Clause)
+
+@connectrpc/connect
+Apache-2.0
+
+@connectrpc/connect-node
+Apache-2.0
+
 @fastify/busboy
 MIT
 Copyright Brian White. All rights reserved.
@@ -1925,9 +1938,6 @@ ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR
 IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-dot-object
-MIT
-
 event-target-shim
 MIT
 The MIT License (MIT)
@@ -3268,9 +3278,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-
-twirp-ts
-MIT
 
 undici
 MIT

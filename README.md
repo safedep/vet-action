@@ -1,9 +1,11 @@
 # SafeDep GitHub Action
 
 <!-- markdownlint-disable MD033 -->
+
 > Created and maintained by
-> <b><a href="https://safedep.io/">https://safedep.io</a></b>
-> with contributions from the community 🚀
+> <b><a href="https://safedep.io/">https://safedep.io</a></b> with contributions
+> from the community 🚀
+
 <!-- markdownlint-enable MD033 -->
 
 ![CodeQL Analysis](https://github.com/safedep/vet-action/actions/workflows/codeql-analysis.yml/badge.svg)
@@ -11,23 +13,24 @@
 ![vet OSS Components](https://github.com/safedep/vet-action/actions/workflows/vet.yml/badge.svg)
 
 GitHub Action for integrating [vet](https://github.com/safedep/vet) in your
-workflow. Provides active protection against vulnerable, outdated, unpopular
-and malicious OSS dependencies using policy as code based guardrails.
+workflow. Provides active protection against vulnerable, outdated, unpopular and
+malicious OSS dependencies using policy as code based guardrails.
 
 ![Example Screenshot](./docs/assets/vet-action-malysis-1.png)
 
 ## Usage
 
-> Follow [setup instructions](#setup-instructions) for step by step guide
-> on how to integrate `vet` in your GitHub repository with customizable policies
+> Follow [setup instructions](#setup-instructions) for step by step guide on how
+> to integrate `vet` in your GitHub repository with customizable policies
 
 ### Quick Start
 
-> Follow *quickstart* if you want to integrate `vet` as a step in your
-> existing GitHub actions workflow. Look at [Setup Instructions](#setup-instructions)
-> for step by step guide on how to integrate `vet` in your GitHub repository
+> Follow _quickstart_ if you want to integrate `vet` as a step in your existing
+> GitHub actions workflow. Look at [Setup Instructions](#setup-instructions) for
+> step by step guide on how to integrate `vet` in your GitHub repository
 
-TLDR; add this GitHub action to vet your changed dependencies during pull request
+TLDR; add this GitHub action to vet your changed dependencies during pull
+request
 
 ```yaml
 - name: Run vet
@@ -41,8 +44,9 @@ TLDR; add this GitHub action to vet your changed dependencies during pull reques
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-The output of `vet-action` is a [SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html)
-report that can be uploaded to GitHub Code Scanning
+The output of `vet-action` is a
+[SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) report
+that can be uploaded to GitHub Code Scanning
 
 > **Note**: `upload-sarif` action requires GitHub Code Scanning to be enabled.
 > This is available for public repositories and for private repositories with
@@ -61,8 +65,8 @@ report that can be uploaded to GitHub Code Scanning
 
 ### Setup Instructions
 
-> Follow this instruction to integrate `vet` as a GitHub action in your
-> GitHub repository
+> Follow this instruction to integrate `vet` as a GitHub action in your GitHub
+> repository
 
 - Go to the root directory of your GitHub repository
 - Create the workflow and policy directory
@@ -89,9 +93,12 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 ## Cloud Mode
 
 <!-- markdownlint-disable MD013 -->
-`vet-action` provides integration with [SafeDep Cloud](https://docs.safedep.io/cloud).
-By leveraging SafeDep Cloud, `vet` and `vet-action` provides additional services such
-as [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+
+`vet-action` provides integration with
+[SafeDep Cloud](https://docs.safedep.io/cloud). By leveraging SafeDep Cloud,
+`vet` and `vet-action` provides additional services such as
+[Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+
 <!-- markdownlint-enable MD013 -->
 
 To use SafeDep Cloud integration, you need
@@ -108,21 +115,38 @@ guide on getting the required information for activating cloud integration.
 `vet` is invoked during scan
 
 <!-- markdownlint-disable MD013 -->
-| GitHub Action Input  | Example Value                         | Notes                                             |
-| -------------------- | ------------------------------------- | ------------------------------------------------- |
-| `policy`             | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)     |
-| `exception-file`     | `config/exceptions.yml`               | Path to `vet` exception YAML file                 |
-| `trusted-registries` | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs        |
-| `timeout`            | `300`                                 | Max time in seconds to wait for external services |
-| `cloud`              | `true`                                | Enable integration with SafeDep Cloud             |
-| `cloud-tenant`       | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                       |
-| `cloud-key`          | `sfd_xxxx`                            | SafeDep Cloud API Key                             |
-| `upload-sarif`       | `true`                                | Upload SARIF report as artifact on push           |
-| `add-step-summary`   | `true`                                | Add job step summary report on push               |
 
-- Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code) for details on `policy` format
-- Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for details on `exception-file` format
+| GitHub Action Input     | Example Value                         | Notes                                                         |
+| ----------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| `policy`                | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)                 |
+| `exception-file`        | `config/exceptions.yml`               | Path to `vet` exception YAML file                             |
+| `trusted-registries`    | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs                    |
+| `timeout`               | `300`                                 | Max time in seconds to wait for external services             |
+| `cloud`                 | `true`                                | Enable integration with SafeDep Cloud                         |
+| `cloud-tenant`          | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                                   |
+| `cloud-key`             | `sfd_xxxx`                            | SafeDep Cloud API Key                                         |
+| `upload-sarif`          | `true`                                | Upload SARIF report as artifact on push                       |
+| `add-step-summary`      | `true`                                | Add job step summary report on push                           |
+| `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs |
+
+- Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code)
+  for details on `policy` format
+- Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for
+details on `exception-file` format
 <!-- markdownlint-enable MD013 -->
+
+### Comments Proxy Server
+
+The `enable-comments-proxy` configuration can be used to enable Comments Proxy
+Server to create comments on GitHub PRs. This is required when the action is
+invoked in a PR from a forked repository due to limitation on `$GITHUB_TOKEN`.
+See [ghcp](https://github.com/safedep/ghcp) for more details.
+
+**SECURITY NOTE**: Comments proxy uses `$GITHUB_TOKEN` for authentication to
+verify the request is from a GitHub Actions workflow associated with the
+repository. When enable, `vet-action` will call Comments Proxy Server with
+`$GITHUB_TOKEN` available in the workflow. This will be used _ONLY_ when
+`vet-action` fails to call GitHub API due to the limitation on `$GITHUB_TOKEN`.
 
 ### Trusted Registries
 
@@ -138,8 +162,10 @@ trusted-registries: |
 
 ## Support
 
-- Raise issues related to GitHub Action at [https://github.com/safedep/vet-action/issues](https://github.com/safedep/vet-action/issues)
-- Raise issues related to `vet` tool at [https://github.com/safedep/vet/issues](https://github.com/safedep/vet/issues)
+- Raise issues related to GitHub Action at
+  [https://github.com/safedep/vet-action/issues](https://github.com/safedep/vet-action/issues)
+- Raise issues related to `vet` tool at
+  [https://github.com/safedep/vet/issues](https://github.com/safedep/vet/issues)
 
 ## Development
 

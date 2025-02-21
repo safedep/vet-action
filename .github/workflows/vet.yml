@@ -29,6 +29,7 @@ jobs:
           cloud: true
           cloud-key: ${{ secrets.SAFEDEP_CLOUD_API_KEY }}
           cloud-tenant: ${{ secrets.SAFEDEP_CLOUD_TENANT_DOMAIN }}
+          enable-comments-proxy: true
           trusted-registries: |
             https://registry.npmjs.org/strip-ansi
             https://registry.npmjs.org/string-width
