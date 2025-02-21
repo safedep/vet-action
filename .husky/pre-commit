@@ -1,7 +1,6 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-npx prettier --write .
 npm run lint
 npm run ci-test
 
