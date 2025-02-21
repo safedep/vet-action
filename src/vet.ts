@@ -667,7 +667,10 @@ export class Vet {
     args.push('--malware-analysis-timeout', `${this.config.timeout}s`)
   }
 
-  private async addOrUpdatePullRequestComment(reportContent: string, marker: string): Promise<void> {
+  private async addOrUpdatePullRequestComment(
+    reportContent: string,
+    marker: string
+  ): Promise<void> {
     core.info('Adding vet report as a comment in the PR')
 
     const comments = await this.octokit.rest.issues.listComments({
@@ -677,8 +680,8 @@ export class Vet {
       per_page: 100
     })
 
-    const existingComment = comments.data.find(
-      comment => comment.body?.includes(marker)
+    const existingComment = comments.data.find(comment =>
+      comment.body?.includes(marker)
     )
 
     const comment = `${reportContent}\n\n${marker}`

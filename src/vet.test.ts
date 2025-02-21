@@ -20,26 +20,26 @@ const mockEnv = {
   GITHUB_BASE_REF: 'main',
   GITHUB_HEAD_REF: 'feature-branch',
   GITHUB_REF_NAME: 'feature-branch',
-  RUNNER_TEMP: '/tmp',
+  RUNNER_TEMP: '/tmp'
 }
 
 describe('Vet', () => {
   let vet: Vet
-  
+
   beforeEach(() => {
     // Reset all mocks before each test
     jest.clearAllMocks()
-    
+
     // Setup environment variables
     process.env = { ...mockEnv }
-    
+
     // Setup basic config
     const config = {
       cloudMode: false,
       pullRequestNumber: 123,
-      pullRequestComment: true,
+      pullRequestComment: true
     }
-    
+
     vet = new Vet(config)
   })
 
@@ -49,9 +49,9 @@ describe('Vet', () => {
         issues: {
           listComments: jest.fn(),
           createComment: jest.fn(),
-          updateComment: jest.fn(),
-        },
-      },
+          updateComment: jest.fn()
+        }
+      }
     }
 
     beforeEach(() => {
@@ -62,7 +62,7 @@ describe('Vet', () => {
     it('should create a new comment when no existing comment is found', async () => {
       // Mock listComments response
       mockOctokit.rest.issues.listComments.mockResolvedValue({
-        data: [],
+        data: []
       })
 
       const reportContent = 'Test Report'
@@ -75,7 +75,7 @@ describe('Vet', () => {
         repo: 'repo',
         owner: 'owner',
         issue_number: 123,
-        body: `${reportContent}\n\n${marker}`,
+        body: `${reportContent}\n\n${marker}`
       })
 
       // Verify updateComment was not called
@@ -86,10 +86,10 @@ describe('Vet', () => {
       // Mock listComments response with existing comment
       const existingComment = {
         id: 456,
-        body: 'Old content <!-- test-marker -->',
+        body: 'Old content <!-- test-marker -->'
       }
       mockOctokit.rest.issues.listComments.mockResolvedValue({
-        data: [existingComment],
+        data: [existingComment]
       })
 
       const reportContent = 'Updated Report'
@@ -102,7 +102,7 @@ describe('Vet', () => {
         repo: 'repo',
         owner: 'owner',
         comment_id: 456,
-        body: `${reportContent}\n\n${marker}`,
+        body: `${reportContent}\n\n${marker}`
       })
 
       // Verify createComment was not called
@@ -111,14 +111,16 @@ describe('Vet', () => {
 
     it('should throw when listComments fails', async () => {
       // Mock API error
-      mockOctokit.rest.issues.listComments.mockRejectedValue(new Error('API Error'))
+      mockOctokit.rest.issues.listComments.mockRejectedValue(
+        new Error('API Error')
+      )
 
       const reportContent = 'Test Report'
       const marker = '<!-- test-marker -->'
 
-      await expect((vet as any).
-        addOrUpdatePullRequestComment(reportContent, marker)).
-        rejects.toThrow('API Error')
+      await expect(
+        (vet as any).addOrUpdatePullRequestComment(reportContent, marker)
+      ).rejects.toThrow('API Error')
     })
   })
 
@@ -151,19 +153,21 @@ describe('Vet', () => {
 
     it('should process changed lockfiles', async () => {
       // Mock changed files
-      const changedFiles = [{
-        sha: 'abc123',
-        filename: 'package-lock.json',
-        blob_url: 'url',
-        raw_url: 'url',
-        contents_url: 'url',
-      }]
+      const changedFiles = [
+        {
+          sha: 'abc123',
+          filename: 'package-lock.json',
+          blob_url: 'url',
+          raw_url: 'url',
+          contents_url: 'url'
+        }
+      ]
 
       // @ts-ignore - Mocking private methods
       vet.pullRequestGetChangedFiles = jest.fn().mockResolvedValue(changedFiles)
-      
+
       const result = await vet.run('pull_request', '')
       expect(result).toBe('')
     })
   })
-}) 
+})
