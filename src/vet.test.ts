@@ -1,8 +1,4 @@
 import { Vet } from './vet'
-import * as core from '@actions/core'
-import { context } from '@actions/github'
-import fs from 'node:fs'
-import path from 'path'
 
 // Mock external dependencies
 jest.mock('@actions/core')
@@ -55,7 +51,7 @@ describe('Vet', () => {
     }
 
     beforeEach(() => {
-      // @ts-ignore - Mocking private property
+      // @ts-expect-error - Mocking private property
       vet.octokit = mockOctokit
     })
 
@@ -68,6 +64,7 @@ describe('Vet', () => {
       const reportContent = 'Test Report'
       const marker = '<!-- test-marker -->'
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (vet as any).addOrUpdatePullRequestComment(reportContent, marker)
 
       // Verify createComment was called with correct parameters
@@ -95,6 +92,7 @@ describe('Vet', () => {
       const reportContent = 'Updated Report'
       const marker = '<!-- test-marker -->'
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (vet as any).addOrUpdatePullRequestComment(reportContent, marker)
 
       // Verify updateComment was called with correct parameters
@@ -119,6 +117,7 @@ describe('Vet', () => {
       const marker = '<!-- test-marker -->'
 
       await expect(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (vet as any).addOrUpdatePullRequestComment(reportContent, marker)
       ).rejects.toThrow('API Error')
     })
@@ -127,24 +126,24 @@ describe('Vet', () => {
   describe('runOnPullRequest', () => {
     beforeEach(() => {
       // Mock vet.getLatestBinary
-      // @ts-ignore - Mocking private method
+      // @ts-expect-error - Mocking private method
       vet.getLatestRelease = jest.fn().mockResolvedValue('1.2.3')
 
       // Mock vet.downloadBinary
-      // @ts-ignore - Mocking private method
+      // @ts-expect-error - Mocking private method
       vet.downloadBinary = jest.fn().mockResolvedValue('Mock Binary Path')
 
       // Mock vet.extractBinary
-      // @ts-ignore - Mocking private method
+      // @ts-expect-error - Mocking private method
       vet.extractBinary = jest.fn().mockResolvedValue('Mock Binary Path')
 
       // Mock vet.runVet
-      // @ts-ignore - Mocking private method
+      // @ts-expect-error - Mocking private method
       vet.runVet = jest.fn().mockResolvedValue('Version: 1.2.3')
     })
 
     it('should handle no changed files in PR', async () => {
-      // @ts-ignore - Mocking private method
+      // @ts-expect-error - Mocking private method
       vet.pullRequestGetChangedFiles = jest.fn().mockResolvedValue([])
 
       const result = await vet.run('pull_request', '')
@@ -163,7 +162,7 @@ describe('Vet', () => {
         }
       ]
 
-      // @ts-ignore - Mocking private methods
+      // @ts-expect-error - Mocking private methods
       vet.pullRequestGetChangedFiles = jest.fn().mockResolvedValue(changedFiles)
 
       const result = await vet.run('pull_request', '')

@@ -24,6 +24,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "prepare": "husky install",
     "bundle": "npm run format:write && npm run package && cp ./data/policy.yml ./dist/policy.yml",
     "ci-test": "jest",
     "coverage": "make-coverage-badge --output-path ./badges/coverage.svg",

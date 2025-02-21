@@ -704,6 +704,7 @@ export class Vet {
           body: comment
         })
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (ex: any) {
       core.warning(`Unable to add a comment to the PR: ${ex.message}`)
     }
