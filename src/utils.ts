@@ -18,7 +18,8 @@ export function supportedLockfiles(): string[] {
     'pom.xml',
     'gradle.lockfile',
     'requirements.txt',
-    'pnpm-lock.yaml'
+    'pnpm-lock.yaml',
+    'uv.lock'
   ]
 }
 
