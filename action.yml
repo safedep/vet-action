@@ -54,7 +54,8 @@ inputs:
   enable-comments-proxy:
     description: |
       Enable Comments Proxy Server to create comments on GitHub PRs.
-      This is required when the action is invoked in a PR from a forked repository.
+      This is required when the action is invoked in a PR from a forked 
+      repository.
     default: false
     required: false
 
