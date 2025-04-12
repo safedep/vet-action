@@ -29,7 +29,7 @@ malicious OSS dependencies using policy as code based guardrails.
 > GitHub actions workflow. Look at [Setup Instructions](#setup-instructions) for
 > step by step guide on how to integrate `vet` in your GitHub repository
 
-TLDR; add this GitHub action to vet your changed dependencies during pull
+TLDR; add this GitHub Action to vet your changed dependencies during pull
 request
 
 ```yaml
