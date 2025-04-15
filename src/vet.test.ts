@@ -10,12 +10,6 @@ vi.mock('node:fs')
 vi.mock('@actions/exec')
 vi.mock('@actions/tool-cache')
 vi.mock('@actions/artifact')
-vi.mock('node:fs')
-vi.mock('@actions/core')
-vi.mock('@actions/github')
-vi.mock('@actions/exec')
-vi.mock('@actions/tool-cache')
-vi.mock('@actions/artifact')
 vi.mock('./rpc')
 
 // Mock environment variables
