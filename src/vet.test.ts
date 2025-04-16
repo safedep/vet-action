@@ -28,7 +28,7 @@ describe('Vet', () => {
 
   beforeEach(() => {
     // Reset all mocks before each test
-    vi.clearAllMocks()
+    vi.resetAllMocks()
 
     // Setup environment variables
     for (const [key, value] of Object.entries(mockEnv)) {
@@ -186,7 +186,7 @@ describe('Vet', () => {
 
     beforeEach(() => {
       // Reset all mocks
-      vi.clearAllMocks()
+      vi.resetAllMocks()
 
       // Setup environment variables
       for (const [key, value] of Object.entries(mockEnv)) {
