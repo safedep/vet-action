@@ -31,7 +31,9 @@ describe('Vet', () => {
     vi.clearAllMocks()
 
     // Setup environment variables
-    process.env = { ...mockEnv }
+    for (const [key, value] of Object.entries(mockEnv)) {
+      vi.stubEnv(key, value)
+    }
 
     // Setup basic config
     const config = {
@@ -187,7 +189,9 @@ describe('Vet', () => {
       vi.clearAllMocks()
 
       // Setup environment variables
-      process.env = { ...mockEnv }
+      for (const [key, value] of Object.entries(mockEnv)) {
+        vi.stubEnv(key, value)
+      }
 
       // Setup core.summary mock
       vi.mocked(core.summary).clear = mockSummary.clear
