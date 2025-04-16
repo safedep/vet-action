@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import fs from 'node:fs'
+import * as core from '@actions/core'
 import { Vet } from './vet'
 
 // Mock external dependencies
@@ -8,6 +10,7 @@ vi.mock('node:fs')
 vi.mock('@actions/exec')
 vi.mock('@actions/tool-cache')
 vi.mock('@actions/artifact')
+vi.mock('./rpc')
 
 // Mock environment variables
 const mockEnv = {
@@ -25,10 +28,12 @@ describe('Vet', () => {
 
   beforeEach(() => {
     // Reset all mocks before each test
-    vi.clearAllMocks()
+    vi.resetAllMocks()
 
     // Setup environment variables
-    process.env = { ...mockEnv }
+    for (const [key, value] of Object.entries(mockEnv)) {
+      vi.stubEnv(key, value)
+    }
 
     // Setup basic config
     const config = {
@@ -168,6 +173,135 @@ describe('Vet', () => {
 
       const result = await vet.run('pull_request', '')
       expect(result).toBe('')
+    })
+  })
+
+  describe('addStepSummary', () => {
+    // Mock core.summary
+    const mockSummary = {
+      clear: vi.fn().mockReturnThis(),
+      addRaw: vi.fn().mockReturnThis(),
+      write: vi.fn().mockResolvedValue(undefined)
+    }
+
+    beforeEach(() => {
+      // Reset all mocks
+      vi.resetAllMocks()
+
+      // Setup environment variables
+      for (const [key, value] of Object.entries(mockEnv)) {
+        vi.stubEnv(key, value)
+      }
+
+      // Setup core.summary mock
+      vi.mocked(core.summary).clear = mockSummary.clear
+      vi.mocked(core.summary).addRaw = mockSummary.addRaw
+      vi.mocked(core.summary).write = mockSummary.write
+    })
+
+    it('should not add summary when addStepSummary is false', async () => {
+      // Create a new Vet instance with addStepSummary set to false
+      const vetInstance = new Vet({
+        cloudMode: false,
+        pullRequestNumber: 123,
+        pullRequestComment: true,
+        addStepSummary: false
+      })
+
+      // Call the private method directly
+      // @ts-expect-error - Accessing private method
+      await vetInstance.addStepSummary('/test/path.md')
+
+      // Verify no interactions with mocks
+      expect(fs.readFileSync).not.toHaveBeenCalled()
+      expect(mockSummary.clear).not.toHaveBeenCalled()
+      expect(mockSummary.addRaw).not.toHaveBeenCalled()
+      expect(mockSummary.write).not.toHaveBeenCalled()
+    })
+
+    it('should add summary when addStepSummary is true', async () => {
+      // Mock fs.readFileSync to return test content
+      const mockContent = '# Test Report\n\nSome content'
+      vi.mocked(fs.readFileSync).mockReturnValue(mockContent)
+
+      // Create a new Vet instance with addStepSummary set to true
+      const vetInstance = new Vet({
+        cloudMode: false,
+        pullRequestNumber: 123,
+        pullRequestComment: true,
+        addStepSummary: true
+      })
+
+      // Call the private method directly
+      // @ts-expect-error - Accessing private method
+      await vetInstance.addStepSummary('/test/path.md')
+
+      // Verify expected behavior
+      expect(fs.readFileSync).toHaveBeenCalledWith('/test/path.md', {
+        encoding: 'utf-8'
+      })
+      expect(core.info).toHaveBeenCalledWith(
+        expect.stringContaining(String(mockContent.length))
+      )
+      expect(mockSummary.clear).toHaveBeenCalled()
+      expect(mockSummary.addRaw).toHaveBeenCalledWith(mockContent, true)
+      expect(mockSummary.write).toHaveBeenCalledWith({ overwrite: true })
+    })
+
+    it('should truncate summary when content exceeds limit', async () => {
+      // Mock large content
+      const stepSummaryLimit = 1024 * 1024 - 32
+      const longContent = 'a'.repeat(stepSummaryLimit + 100)
+      vi.mocked(fs.readFileSync).mockReturnValue(longContent)
+
+      // Create a new Vet instance with addStepSummary set to true
+      const vetInstance = new Vet({
+        cloudMode: false,
+        pullRequestNumber: 123,
+        pullRequestComment: true,
+        addStepSummary: true
+      })
+
+      // Call the private method directly
+      // @ts-expect-error - Accessing private method
+      await vetInstance.addStepSummary('/test/path.md')
+
+      // Verify expected behavior
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining('Markdown summary is too large')
+      )
+      expect(mockSummary.addRaw).toHaveBeenCalledWith(
+        longContent.slice(0, stepSummaryLimit),
+        true
+      )
+    })
+
+    it('should handle file read errors gracefully', async () => {
+      // Mock file read error
+      const error = new Error('File not found')
+      vi.mocked(fs.readFileSync).mockImplementation(() => {
+        throw error
+      })
+
+      // Create a new Vet instance with addStepSummary set to true
+      const vetInstance = new Vet({
+        cloudMode: false,
+        pullRequestNumber: 123,
+        pullRequestComment: true,
+        addStepSummary: true
+      })
+
+      // Call the private method directly
+      // @ts-expect-error - Accessing private method
+      await vetInstance.addStepSummary('/test/path.md')
+
+      // Verify expected behavior
+      expect(core.warning).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Unable to set markdown summary as output: File not found'
+        )
+      )
+      expect(mockSummary.addRaw).not.toHaveBeenCalled()
     })
   })
 })

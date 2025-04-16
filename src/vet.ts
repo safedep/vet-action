@@ -185,43 +185,8 @@ export class Vet {
       }
     }
 
-    // Add the markdown summary to the workflow output
-    let markdownSummary = fs.readFileSync(vetMarkdownSummaryReportPath, {
-      encoding: 'utf-8'
-    })
-
     // Add step summary if allowed by the configuration
-    // NOTE: It will overwrite the buffer for step summary and content
-    // is truncated if it exceeds the limit.
-    if (this.config.addStepSummary) {
-      try {
-        core.info(
-          `Setting markdown summary as output, content length: ${markdownSummary.length}`
-        )
-
-        // Step summary has limits
-        // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
-        const stepSummaryLimit = 1024 * 1024 - 32
-        if (markdownSummary.length > stepSummaryLimit) {
-          core.warning(
-            `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
-          )
-
-          markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
-        }
-
-        // https://github.com/actions/toolkit/blob/main/packages/core/README.md
-        core.summary.clear()
-        core.summary.addRaw(markdownSummary, true)
-        core.summary.write({ overwrite: true })
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (error: any) {
-        core.warning(
-          `Unable to set markdown summary as output: ${error.message}`
-        )
-      }
-    }
+    await this.addStepSummary(vetMarkdownSummaryReportPath)
 
     return vetSarifReportPath
   }
@@ -413,6 +378,9 @@ export class Vet {
       const marker = `<!-- vet-report-pr-comment -->`
       await this.addOrUpdatePullRequestComment(reportContent, marker)
     }
+
+    // Add step summary if allowed by the configuration
+    await this.addStepSummary(vetMarkdownReportPath)
 
     // Throw the exception if vet scan failed
     if (finalRunException) {
@@ -751,5 +719,41 @@ export class Vet {
     })
 
     core.info(`Created or updated comment with id: ${response.commentId}`)
+  }
+
+  private async addStepSummary(markdownReportPath: string): Promise<void> {
+    if (!this.config.addStepSummary) {
+      return
+    }
+
+    try {
+      let markdownSummary = fs.readFileSync(markdownReportPath, {
+        encoding: 'utf-8'
+      })
+
+      core.info(
+        `Setting markdown summary as output, content length: ${markdownSummary.length}`
+      )
+
+      // Step summary has limits
+      // https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#step-isolation-and-limits
+      const stepSummaryLimit = 1024 * 1024 - 32
+      if (markdownSummary.length > stepSummaryLimit) {
+        core.warning(
+          `Markdown summary is too large: ${markdownSummary.length}, truncating to ${stepSummaryLimit}`
+        )
+
+        markdownSummary = markdownSummary.slice(0, stepSummaryLimit)
+      }
+
+      // https://github.com/actions/toolkit/blob/main/packages/core/README.md
+      core.summary.clear()
+      core.summary.addRaw(markdownSummary, true)
+      core.summary.write({ overwrite: true })
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      core.warning(`Unable to set markdown summary as output: ${error.message}`)
+    }
   }
 }
