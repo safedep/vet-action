@@ -59,6 +59,7 @@ jobs:
         with:
           cloud: false
           enable-comments-proxy: true
+          paranoid: true
           trusted-registries: |
             https://registry.example.org/repositories/npm-private
             https://registry.example.org/repositories/npm-group
