@@ -62,6 +62,10 @@ export async function run(): Promise<void> {
       }
     )
 
+    const paranoid: boolean = core.getBooleanInput('paranoid', {
+      required: false
+    })
+
     const eventName = process.env.GITHUB_EVENT_NAME as string
     const eventJson = JSON.parse(
       fs.readFileSync(process.env.GITHUB_EVENT_PATH as string, 'utf8')
@@ -88,6 +92,7 @@ export async function run(): Promise<void> {
       uploadSarif,
       addStepSummary,
       enableGitHubCommentsProxy,
+      paranoid,
       trustedRegistries: trustedRegistries
         .split(/,|\n/)
         .map(r => r.trim())

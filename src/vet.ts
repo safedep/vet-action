@@ -1,17 +1,17 @@
 import * as core from '@actions/core'
 import { context, getOctokit } from '@actions/github'
 import { GitHub } from '@actions/github/lib/utils'
+import { GitHubCommentsProxyService } from '@buf/safedep_api.bufbuild_es/safedep/services/ghcp/v1/ghcp_pb'
+import { Client } from '@connectrpc/connect'
 import fs from 'node:fs'
 import path from 'path'
+import { createGitHubCommentsProxyServiceClient } from './rpc'
 import {
   getDefaultVetPolicyFilePath,
   getTempFilePath,
   isGithubRunnerDebug,
   supportedLockfiles
 } from './utils'
-import { createGitHubCommentsProxyServiceClient } from './rpc'
-import { GitHubCommentsProxyService } from '@buf/safedep_api.bufbuild_es/safedep/services/ghcp/v1/ghcp_pb'
-import { Client } from '@connectrpc/connect'
 
 // eslint-disable-next-line import/no-commonjs, @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const exec = require('@actions/exec')
@@ -36,6 +36,7 @@ interface VetConfig {
   uploadSarif?: boolean
   addStepSummary?: boolean
   enableGitHubCommentsProxy?: boolean
+  paranoid?: boolean
 }
 
 interface PullRequestFile {
@@ -641,6 +642,11 @@ export class Vet {
     )
     args.push('--malware')
     args.push('--malware-analysis-timeout', `${this.config.timeout}s`)
+
+    if (this.config.paranoid) {
+      args.push('--malware-trust-tool-result')
+      args.push('--malware-analysis-min-confidence', 'MEDIUM')
+    }
   }
 
   private async addOrUpdatePullRequestComment(
