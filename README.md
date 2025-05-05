@@ -128,6 +128,7 @@ guide on getting the required information for activating cloud integration.
 | `upload-sarif`          | `true`                                | Upload SARIF report as artifact on push                       |
 | `add-step-summary`      | `true`                                | Add job step summary report on push                           |
 | `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs |
+| `paranoid`              | `false`                               | Enable paranoid mode to fail PR workflow on any risk          |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code)
   for details on `policy` format

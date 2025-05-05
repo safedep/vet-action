@@ -51,6 +51,11 @@ inputs:
       This is used only during full scan on push or schedule.
     default: true
     required: false
+  paranoid:
+    description: |
+      Enable paranoid mode to fail PR workflow on any risk.
+    default: false
+    required: false
   enable-comments-proxy:
     description: |
       Enable Comments Proxy Server to create comments on GitHub PRs.
