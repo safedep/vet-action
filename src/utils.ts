@@ -19,7 +19,8 @@ export function supportedLockfiles(): string[] {
     'gradle.lockfile',
     'requirements.txt',
     'pnpm-lock.yaml',
-    'uv.lock'
+    'uv.lock',
+    'Cargo.lock'
   ]
 }
 
