@@ -120,6 +120,7 @@ export class Vet {
 
     const vetFinalScanArgs = [
       'scan',
+      '-s',
       '--report-sarif',
       vetSarifReportPath,
       '--report-markdown-summary',
@@ -263,6 +264,7 @@ export class Vet {
 
       const vetArgs = [
         'scan',
+        '-s',
         '--lockfiles',
         tempFile,
         '--lockfile-as',
@@ -311,6 +313,7 @@ export class Vet {
 
     const vetFinalScanArgs = [
       'scan',
+      '-s',
       ...changedLockFiles.map(file => ['--lockfiles', file.filename]).flat(3),
       '--exceptions',
       exceptionsFileName,
