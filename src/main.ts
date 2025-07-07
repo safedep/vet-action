@@ -55,6 +55,11 @@ export async function run(): Promise<void> {
       required: false
     })
 
+    const exclusionPatterns: string = core.getInput('exclude', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const enableGitHubCommentsProxy: boolean = core.getBooleanInput(
       'enable-comments-proxy',
       {
@@ -93,6 +98,10 @@ export async function run(): Promise<void> {
       addStepSummary,
       enableGitHubCommentsProxy,
       paranoid,
+      exclusionPatterns: exclusionPatterns
+        .split(/,|\n/)
+        .map(r => r.trim())
+        .filter(r => r.length > 0),
       trustedRegistries: trustedRegistries
         .split(/,|\n/)
         .map(r => r.trim())

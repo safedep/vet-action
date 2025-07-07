@@ -32,6 +32,7 @@ interface VetConfig {
   pullRequestComment?: boolean
   exceptionFile?: string
   trustedRegistries?: string[]
+  exclusionPatterns?: string[]
   timeout?: string
   uploadSarif?: boolean
   addStepSummary?: boolean
@@ -143,6 +144,18 @@ export class Vet {
 
       for (const registry of this.config.trustedRegistries) {
         vetFinalScanArgs.push('--trusted-registry', registry)
+      }
+    }
+
+    if (
+      this.config.exclusionPatterns &&
+      this.config.exclusionPatterns.length > 0
+    ) {
+      core.info(
+        `Using exclusion patterns: ${this.config.exclusionPatterns.join(',')}`
+      )
+      for (const pattern of this.config.exclusionPatterns) {
+        vetFinalScanArgs.push('--exclude', pattern)
       }
     }
 
@@ -347,6 +360,19 @@ export class Vet {
 
       for (const registry of this.config.trustedRegistries) {
         vetFinalScanArgs.push('--trusted-registry', registry)
+      }
+    }
+
+    if (
+      this.config.exclusionPatterns &&
+      this.config.exclusionPatterns.length > 0
+    ) {
+      core.info(
+        `Using exclusion patterns: ${this.config.exclusionPatterns.join(',')}`
+      )
+
+      for (const pattern of this.config.exclusionPatterns) {
+        vetFinalScanArgs.push('--exclude', pattern)
       }
     }
 
