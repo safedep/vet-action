@@ -29,6 +29,9 @@ inputs:
   exception-file:
     description: Path to exception file
     required: false
+  exclude:
+    description: Comma separated list path patterns to exclude from the scan
+    required: false
   trusted-registries:
     description: Comma separated list of trusted registry base URLs
     required: false
