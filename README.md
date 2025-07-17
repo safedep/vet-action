@@ -131,7 +131,7 @@ guide on getting the required information for activating cloud integration.
 | `paranoid`              | `false`                               | Enable paranoid mode to fail PR workflow on any risk           |
 | `exclude`               | `test/go.mod, test/package.json`      | Comma separated list of path patterns to exclude from the scan |
 
-- Refer to [vet policy as code](https://docs.safedep.io/advanced/polic-as-code)
+- Refer to [vet policy as code](https://docs.safedep.io/advanced/policy-as-code)
   for details on `policy` format
 - Refer to [vet exceptions](https://docs.safedep.io/advanced/exceptions) for
 details on `exception-file` format
