@@ -122,6 +122,7 @@ export class Vet {
     const vetFinalScanArgs = [
       'scan',
       '-s',
+      '-v',
       '--report-sarif',
       vetSarifReportPath,
       '--report-markdown-summary',
