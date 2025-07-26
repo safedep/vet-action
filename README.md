@@ -43,8 +43,8 @@ request.
     #enable-comments-proxy: true
 ```
 
-**Note:** `vet-action` requires the following job or workflow permissions to
-be able to add comments on the pull request:
+**Note:** `vet-action` requires the following job or workflow permissions to be
+able to add comments on the pull request:
 
 ```yaml
 permissions:
@@ -69,8 +69,8 @@ that can be uploaded to GitHub Code Scanning
     category: vet
 ```
 
-**Note:** Uploading SARIF report to GitHub Code Scanning requires the
-following job or workflow permissions to upload the SARIF report:
+**Note:** Uploading SARIF report to GitHub Code Scanning requires the following
+job or workflow permissions to upload the SARIF report:
 
 ```yaml
 permissions:
