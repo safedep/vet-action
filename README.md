@@ -30,18 +30,27 @@ malicious OSS dependencies using policy as code based guardrails.
 > step by step guide on how to integrate `vet` in your GitHub repository
 
 TLDR; add this GitHub Action to vet your changed dependencies during pull
-request
+request.
 
 ```yaml
 - name: Run vet
   id: vet
-  permissions:
-    contents: read
-    issues: write
-    pull-requests: write
   uses: safedep/vet-action@v1
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    # Enable comments proxy server for public repositories
+    # where GitHub Action jobs are run from forked repositories
+    #enable-comments-proxy: true
+```
+
+**Note:** `vet-action` requires the following job or workflow permissions to be
+able to add comments on the pull request:
+
+```yaml
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
 ```
 
 The output of `vet-action` is a
@@ -54,13 +63,18 @@ that can be uploaded to GitHub Code Scanning
 
 ```yaml
 - name: Upload SARIF
-  permissions:
-    contents: read
-    security-events: write
   uses: github/codeql-action/upload-sarif@v3
   with:
     sarif_file: ${{ steps.vet.outputs.report }}
     category: vet
+```
+
+**Note:** Uploading SARIF report to GitHub Code Scanning requires the following
+job or workflow permissions to upload the SARIF report:
+
+```yaml
+permissions:
+  security-events: write
 ```
 
 ### Setup Instructions
@@ -98,6 +112,8 @@ curl -o .github/workflows/vet-ci.yml -L https://raw.githubusercontent.com/safede
 [SafeDep Cloud](https://docs.safedep.io/cloud). By leveraging SafeDep Cloud,
 `vet` and `vet-action` provides additional services such as
 [Malicious Package Analysis](https://docs.safedep.io/cloud/malware-analysis).
+
+**Note:** SafeDep Cloud integration is disabled by default.
 
 <!-- markdownlint-enable MD013 -->
 
