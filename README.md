@@ -52,6 +52,7 @@ permissions:
   pull-requests: write
   issues: write
 ```
+
 The output of `vet-action` is a
 [SARIF](https://docs.oasis-open.org/sarif/sarif/v2.1.0/sarif-v2.1.0.html) report
 that can be uploaded to GitHub Code Scanning
@@ -75,6 +76,7 @@ following job or workflow permissions to upload the SARIF report:
 permissions:
   security-events: write
 ```
+
 ### Setup Instructions
 
 > Follow this instruction to integrate `vet` as a GitHub action in your GitHub
