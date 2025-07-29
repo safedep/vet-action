@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/k6": "^0.53.1",
     "express": "^4.19.2",
-    "mocha": "^10.7.3"
+    "mocha": "^10.7.3",
+    "vitest": "^3.2.4"
   }
 }
