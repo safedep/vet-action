@@ -147,17 +147,7 @@ export class Vet {
       }
     }
 
-    if (
-      this.config.exclusionPatterns &&
-      this.config.exclusionPatterns.length > 0
-    ) {
-      core.info(
-        `Using exclusion patterns: ${this.config.exclusionPatterns.join(',')}`
-      )
-      for (const pattern of this.config.exclusionPatterns) {
-        vetFinalScanArgs.push('--exclude', pattern)
-      }
-    }
+    this.applyScanExclusions(vetFinalScanArgs)
 
     await this.runVet(vetFinalScanArgs)
 
@@ -287,6 +277,10 @@ export class Vet {
         '--enrich=false'
       ]
 
+      // We must not touch lockfiles that are explicitly excluded from scan
+      // even during the time of generating exceptions
+      this.applyScanExclusions(vetArgs)
+
       core.info(`Running vet with command line: ${vetArgs}`)
       await this.runVet(vetArgs)
     }
@@ -363,18 +357,7 @@ export class Vet {
       }
     }
 
-    if (
-      this.config.exclusionPatterns &&
-      this.config.exclusionPatterns.length > 0
-    ) {
-      core.info(
-        `Using exclusion patterns: ${this.config.exclusionPatterns.join(',')}`
-      )
-
-      for (const pattern of this.config.exclusionPatterns) {
-        vetFinalScanArgs.push('--exclude', pattern)
-      }
-    }
+    this.applyScanExclusions(vetFinalScanArgs)
 
     core.info(
       `Running vet to generate final report at ${vetMarkdownReportPath}`
@@ -641,6 +624,20 @@ export class Vet {
     }
 
     return getDefaultVetPolicyFilePath()
+  }
+
+  private applyScanExclusions(args: string[]): void {
+    if (
+      this.config.exclusionPatterns &&
+      this.config.exclusionPatterns.length > 0
+    ) {
+      core.info(
+        `Using exclusion patterns: ${this.config.exclusionPatterns.join(',')}`
+      )
+      for (const pattern of this.config.exclusionPatterns) {
+        args.push('--exclude', pattern)
+      }
+    }
   }
 
   private applyCloudConfig(args: string[]): void {
