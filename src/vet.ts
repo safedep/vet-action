@@ -147,7 +147,7 @@ export class Vet {
       }
     }
 
-    this.applyScanExclusions(vetFinalScanArgs)
+    this.applyScanExclusions(vetFinalScanArgs, '')
 
     await this.runVet(vetFinalScanArgs)
 
@@ -279,7 +279,7 @@ export class Vet {
 
       // We must not touch lockfiles that are explicitly excluded from scan
       // even during the time of generating exceptions
-      this.applyScanExclusions(vetArgs)
+      this.applyScanExclusions(vetArgs, tempFile)
 
       core.info(`Running vet with command line: ${vetArgs}`)
       await this.runVet(vetArgs)
@@ -357,7 +357,7 @@ export class Vet {
       }
     }
 
-    this.applyScanExclusions(vetFinalScanArgs)
+    this.applyScanExclusions(vetFinalScanArgs, '')
 
     core.info(
       `Running vet to generate final report at ${vetMarkdownReportPath}`
@@ -625,8 +625,8 @@ export class Vet {
 
     return getDefaultVetPolicyFilePath()
   }
-
-  private applyScanExclusions(args: string[]): void {
+  // tempFile is optional. It is used to exclude the temporary files created while checkout
+  private applyScanExclusions(args: string[], tempFile: string): void {
     if (
       this.config.exclusionPatterns &&
       this.config.exclusionPatterns.length > 0
@@ -637,6 +637,10 @@ export class Vet {
       for (const pattern of this.config.exclusionPatterns) {
         args.push('--exclude', pattern)
       }
+    }
+
+    if (tempFile !== '') {
+      args.push('--exclude', tempFile)
     }
   }
 
