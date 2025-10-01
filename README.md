@@ -145,7 +145,7 @@ guide on getting the required information for activating cloud integration.
 | `add-step-summary`      | `true`                                | Add job step summary report on push                            |
 | `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs  |
 | `paranoid`              | `false`                               | Enable paranoid mode to fail PR workflow on any risk           |
-| `exclude`               | `test/go.mod, test/package.json`      | Comma separated list of path patterns to exclude from the scan |
+| `exclude`               | `test/go.mod, test/package.json`      | Comma separated list of _"repository relative path patterns"_ to exclude from the scan |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/policy-as-code)
   for details on `policy` format

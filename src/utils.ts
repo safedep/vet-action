@@ -32,3 +32,13 @@ export function getTempFilePath(): string {
 export function isGithubRunnerDebug(): boolean {
   return (process.env.RUNNER_DEBUG ?? 'false') !== 'false'
 }
+
+export function matchesPath(filePath: string, targetPath: string): boolean {
+  // Normalize and remove trailing slashes
+
+  /* eslint-disable @typescript-eslint/explicit-function-return-type */
+  /* eslint-disable no-useless-escape */
+  const normalize = (p: string) => path.normalize(p).replace(/[\/\\]+$/, '')
+
+  return normalize(filePath) === normalize(targetPath)
+}
