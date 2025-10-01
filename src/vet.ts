@@ -10,7 +10,7 @@ import {
   getDefaultVetPolicyFilePath,
   getTempFilePath,
   isGithubRunnerDebug,
-  matchesPath,
+  isFilePathMatches,
   supportedLockfiles
 } from './utils'
 
@@ -253,7 +253,7 @@ export class Vet {
       ) {
         let excluded = false
         for (const pattern of this.config.exclusionPatterns) {
-          if (matchesPath(file.filename, pattern)) {
+          if (isFilePathMatches(file.filename, pattern)) {
             core.info(
               `Skipping exceptions generation for excluded file: ${file.filename} matching pattern: ${pattern}`
             )
