@@ -10,6 +10,7 @@ import {
   getDefaultVetPolicyFilePath,
   getTempFilePath,
   isGithubRunnerDebug,
+  isFilePathMatches,
   supportedLockfiles
 } from './utils'
 
@@ -244,6 +245,27 @@ export class Vet {
     }
 
     for (const file of changedLockFiles) {
+      // Check if filepath to be excluded, if so then skip processing the exceptions list
+      core.info(`Checking file path for exclusion patterns: ${file.filename}`)
+      if (
+        this.config.exclusionPatterns &&
+        this.config.exclusionPatterns.length > 0
+      ) {
+        let excluded = false
+        for (const pattern of this.config.exclusionPatterns) {
+          if (isFilePathMatches(file.filename, pattern)) {
+            core.info(
+              `Skipping exceptions generation for excluded file: ${file.filename} matching pattern: ${pattern}`
+            )
+            excluded = true
+            break
+          }
+        }
+        if (excluded) {
+          continue
+        }
+      }
+
       let tempFile: string
       try {
         tempFile = await this.pullRequestCheckoutFileByPath(
@@ -625,7 +647,6 @@ export class Vet {
 
     return getDefaultVetPolicyFilePath()
   }
-
   private applyScanExclusions(args: string[]): void {
     if (
       this.config.exclusionPatterns &&

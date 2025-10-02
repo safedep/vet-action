@@ -32,3 +32,7 @@ export function getTempFilePath(): string {
 export function isGithubRunnerDebug(): boolean {
   return (process.env.RUNNER_DEBUG ?? 'false') !== 'false'
 }
+
+export function isFilePathMatches(filePath: string, pattern: string): boolean {
+  return path.matchesGlob(filePath, pattern)
+}

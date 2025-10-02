@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import fs from 'node:fs'
 import * as core from '@actions/core'
 import { Vet } from './vet'
+import { isFilePathMatches } from './utils'
 
 // Mock external dependencies
 vi.mock('@actions/core')
@@ -303,5 +304,31 @@ describe('Vet', () => {
       )
       expect(mockSummary.addRaw).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('excluded files matching', () => {
+  it('should match exact paths', () => {
+    const filePath = 'src/utils.ts'
+    const targetPathPattern = 'src/utils.ts'
+    expect(isFilePathMatches(filePath, targetPathPattern)).toBe(true)
+  })
+
+  it('should match exact glob paths', () => {
+    const filePath = 'src/migrations/001_initial.json'
+    const targetPathPattern = '**/migrations/*.json'
+    expect(isFilePathMatches(filePath, targetPathPattern)).toBe(true)
+  })
+
+  it('should not match different paths', () => {
+    const filePath = 'src/utils.ts'
+    const targetPathPattern = 'src/vet.ts'
+    expect(isFilePathMatches(filePath, targetPathPattern)).toBe(false)
+  })
+
+  it('should match paths with trailing slashes', () => {
+    const filePath = 'src/utils.ts/'
+    const targetPathPattern = 'src/utils.ts'
+    expect(isFilePathMatches(filePath, targetPathPattern)).toBe(true)
   })
 })

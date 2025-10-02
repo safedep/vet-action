@@ -132,20 +132,20 @@ guide on getting the required information for activating cloud integration.
 
 <!-- markdownlint-disable MD013 -->
 
-| GitHub Action Input     | Example Value                         | Notes                                                          |
-| ----------------------- | ------------------------------------- | -------------------------------------------------------------- |
-| `policy`                | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)                  |
-| `exception-file`        | `config/exceptions.yml`               | Path to `vet` exception YAML file                              |
-| `trusted-registries`    | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs                     |
-| `timeout`               | `300`                                 | Max time in seconds to wait for external services              |
-| `cloud`                 | `true`                                | Enable integration with SafeDep Cloud                          |
-| `cloud-tenant`          | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                                    |
-| `cloud-key`             | `sfd_xxxx`                            | SafeDep Cloud API Key                                          |
-| `upload-sarif`          | `true`                                | Upload SARIF report as artifact on push                        |
-| `add-step-summary`      | `true`                                | Add job step summary report on push                            |
-| `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs  |
-| `paranoid`              | `false`                               | Enable paranoid mode to fail PR workflow on any risk           |
-| `exclude`               | `test/go.mod, test/package.json`      | Comma separated list of path patterns to exclude from the scan |
+| GitHub Action Input     | Example Value                         | Notes                                                                                  |
+| ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------- |
+| `policy`                | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)                                          |
+| `exception-file`        | `config/exceptions.yml`               | Path to `vet` exception YAML file                                                      |
+| `trusted-registries`    | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs                                             |
+| `timeout`               | `300`                                 | Max time in seconds to wait for external services                                      |
+| `cloud`                 | `true`                                | Enable integration with SafeDep Cloud                                                  |
+| `cloud-tenant`          | `default-team.example-org.safedep.io` | SafeDep Cloud Tenant Domain                                                            |
+| `cloud-key`             | `sfd_xxxx`                            | SafeDep Cloud API Key                                                                  |
+| `upload-sarif`          | `true`                                | Upload SARIF report as artifact on push                                                |
+| `add-step-summary`      | `true`                                | Add job step summary report on push                                                    |
+| `enable-comments-proxy` | `false`                               | Enable Comments Proxy Server to create comments on GitHub PRs                          |
+| `paranoid`              | `false`                               | Enable paranoid mode to fail PR workflow on any risk                                   |
+| `exclude`               | `test/go.mod, test/package.json`      | Comma separated list of _"repository relative path patterns"_ to exclude from the scan |
 
 - Refer to [vet policy as code](https://docs.safedep.io/advanced/policy-as-code)
   for details on `policy` format
