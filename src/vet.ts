@@ -245,7 +245,7 @@ export class Vet {
     }
 
     for (const file of changedLockFiles) {
-      // Checkif filepath to be excluded, if so then skip processing the exceptions list
+      // Check if filepath to be excluded, if so then skip processing the exceptions list
       core.info(`Checking file path for exclusion patterns: ${file.filename}`)
       if (
         this.config.exclusionPatterns &&
