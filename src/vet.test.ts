@@ -307,7 +307,7 @@ describe('Vet', () => {
   })
 })
 
-describe('exluded files matching', () => {
+describe('excluded files matching', () => {
   it('should match exact paths', () => {
     const filePath = 'src/utils.ts'
     const targetPathPattern = 'src/utils.ts'
