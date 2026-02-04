@@ -150,6 +150,12 @@ export class Vet {
 
     this.applyScanExclusions(vetFinalScanArgs)
 
+    // Check if exceptionsFile is provided
+    if (this.config.exceptionFile) {
+      core.info(`Using exceptions file: ${this.config.exceptionFile}`)
+      vetFinalScanArgs.push('--exceptions', this.config.exceptionFile)
+    }
+
     await this.runVet(vetFinalScanArgs)
 
     if (!fs.existsSync(vetSarifReportPath)) {
