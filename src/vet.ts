@@ -133,7 +133,7 @@ export class Vet {
       vetMarkdownSummaryReportPath,
       policyInfo.version === VetPolicyVersion.V1
         ? '--filter-suite'
-        : '--filter-v2-suite',
+        : '--insights-v2 --filter-v2-suite', // .. --insights-v2 --filter-v2-suite policy-v2.yml
       policyInfo.path
     ]
 
@@ -366,7 +366,7 @@ export class Vet {
       vetSarifReportPath,
       policyInfo.version === VetPolicyVersion.V1
         ? '--filter-suite'
-        : '--filter-v2-suite',
+        : '--insights-v2 --filter-v2-suite', // .. --insights-v2 --filter-v2-suite policy-v2.yml
       policyInfo.path,
       '--filter-fail',
       '--fail-fast'
