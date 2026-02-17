@@ -134,9 +134,12 @@ export class Vet {
       policyInfo.version === VetPolicyVersion.V1
         ? '--filter-suite'
         : '--filter-v2-suite',
-      policyInfo.path,
-      policyInfo.version === VetPolicyVersion.V2 ? '--insights-v2' : ''
+      policyInfo.path
     ]
+
+    if (policyInfo.version === VetPolicyVersion.V2) {
+      vetFinalScanArgs.push('--insights-v2')
+    }
 
     if (this.config.cloudMode) {
       this.applyCloudConfig(vetFinalScanArgs)
@@ -369,10 +372,13 @@ export class Vet {
         ? '--filter-suite'
         : '--filter-v2-suite',
       policyInfo.path,
-      policyInfo.version === VetPolicyVersion.V2 ? '--insights-v2' : '',
       '--filter-fail',
       '--fail-fast'
     ]
+
+    if (policyInfo.version === VetPolicyVersion.V2) {
+      vetFinalScanArgs.push('--insights-v2')
+    }
 
     // Check if exceptionsFile is provided
     if (this.config.exceptionFile) {
