@@ -133,8 +133,9 @@ export class Vet {
       vetMarkdownSummaryReportPath,
       policyInfo.version === VetPolicyVersion.V1
         ? '--filter-suite'
-        : '--insights-v2 --filter-v2-suite', // .. --insights-v2 --filter-v2-suite policy-v2.yml
-      policyInfo.path
+        : '--filter-v2-suite',
+      policyInfo.path,
+      policyInfo.version === VetPolicyVersion.V2 ? '--insights-v2' : ''
     ]
 
     if (this.config.cloudMode) {
@@ -366,8 +367,9 @@ export class Vet {
       vetSarifReportPath,
       policyInfo.version === VetPolicyVersion.V1
         ? '--filter-suite'
-        : '--insights-v2 --filter-v2-suite', // .. --insights-v2 --filter-v2-suite policy-v2.yml
+        : '--filter-v2-suite',
       policyInfo.path,
+      policyInfo.version === VetPolicyVersion.V2 ? '--insights-v2' : '',
       '--filter-fail',
       '--fail-fast'
     ]
