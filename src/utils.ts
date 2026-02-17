@@ -6,13 +6,6 @@ export enum VetPolicyVersion {
   V2 = 'v2'
 }
 
-export function getDefaultVetPolicyFilePath(): string {
-  const currentFilePath = __filename
-  const policyFilePath = path.join(path.dirname(currentFilePath), 'policy.yml')
-
-  return policyFilePath
-}
-
 export function getDefaultVetPolicyV2FilePath(): string {
   const currentFilePath = __filename
   const policyFilePath = path.join(
