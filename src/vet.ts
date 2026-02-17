@@ -658,12 +658,13 @@ export class Vet {
 
   // getPolicyFileInfo retuns the appropriate policy file path and version
   private getPolicyFileInfo(): { path: string; version: VetPolicyVersion } {
-    if (this.config.policy) {
-      return { path: this.config.policy, version: VetPolicyVersion.V1 }
-    }
-
+    // priority: policyV2 > policy > default
     if (this.config.policyV2) {
       return { path: this.config.policyV2, version: VetPolicyVersion.V2 }
+    }
+
+    if (this.config.policy) {
+      return { path: this.config.policy, version: VetPolicyVersion.V1 }
     }
 
     return {

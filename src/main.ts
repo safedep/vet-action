@@ -82,13 +82,7 @@ export async function run(): Promise<void> {
     )
 
     core.debug(
-      `Running vet with policy: ${
-        policy.length === 0 ? '<default>' : policy
-      } policyV2: ${
-        policyV2.length === 0 ? '<default>' : policyV2
-      } cloudMode: ${cloudMode} version: ${
-        version.length === 0 ? '<latest>' : version
-      }`
+      `Running vet with policy: ${policyV2.length !== 0 ? policyV2 : policy.length !== 0 ? policy : '<default policy v2>'}  cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`
     )
 
     const vet = new Vet({
