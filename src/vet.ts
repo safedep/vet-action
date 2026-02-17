@@ -7,7 +7,7 @@ import fs from 'node:fs'
 import path from 'path'
 import { createGitHubCommentsProxyServiceClient } from './rpc'
 import {
-  getDefaultVetPolicyV2FilePath,
+  getDefaultVetPolicyFilePath,
   VetPolicyVersion,
   getTempFilePath,
   isGithubRunnerDebug,
@@ -676,8 +676,9 @@ export class Vet {
     }
 
     return {
-      path: getDefaultVetPolicyV2FilePath(),
-      version: VetPolicyVersion.V2
+      // Default is still policy v1 file
+      path: getDefaultVetPolicyFilePath(),
+      version: VetPolicyVersion.V1
     }
   }
   private applyScanExclusions(args: string[]): void {
