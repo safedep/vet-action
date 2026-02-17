@@ -16,7 +16,7 @@ rules:
     description: Component popularity is low by Github stars count
     check: RULE_CHECK_POPULARITY
     value: |
-      pkg.projects.exists(p, p.project.type == ProjectSourceType.GITHUB && p.stars < 10)
+      pkg.projects.exists(p, p.type == ProjectSourceType.GITHUB && p.stars < 10)
 
   - name: risky-oss-licenses
     description: Risky OSS license was detected
