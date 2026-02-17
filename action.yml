@@ -1,18 +1,18 @@
 name: SafeDep
-description:
-  Protect against vulnerable and malicious Open Source Software (OSS)
+description: Protect against vulnerable and malicious Open Source Software (OSS)
   dependencies using policy as code based guardrails.
-author: 'SafeDep'
+author: "SafeDep"
 
 branding:
-  icon: 'shield'
-  color: 'green'
+  icon: "shield"
+  color: "green"
 
 inputs:
   policy:
     description: |
       Path to policy file.
-      Deprecation Warning: This input is deprecated. Please use policy-v2 argument instead.
+      Deprecation Warning: This input is deprecated.
+      Please use policy-v2 argument instead.
     required: false
     deprecationMessage: This input is deprecated. Please use policy-v2 argument instead.
   policy-v2:
@@ -29,8 +29,7 @@ inputs:
     description: Tenant ID to use for synchronizing report with SafeDep cloud
     required: false
   version:
-    description:
-      vet version to use for the scan. Defaults to using latest release
+    description: vet version to use for the scan. Defaults to using latest release
     required: false
   exception-file:
     description: Path to exception file
@@ -68,7 +67,8 @@ inputs:
   enable-comments-proxy:
     description: |
       Enable Comments Proxy Server to create comments on GitHub PRs.
-      This is required when the action is invoked in a PR from a forked repository.
+      This is required when the action is invoked in a
+      PR from a forked repository.
     default: false
     required: false
 
