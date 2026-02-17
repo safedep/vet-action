@@ -16,19 +16,26 @@ rules:
     description: Component popularity is low by Github stars count
     check: RULE_CHECK_POPULARITY
     value: |
-      pkg.projects.exists(p, p.project.type == ProjectSourceType.GITHUB && p.stars < 10)
+      pkg.projects.exists(p,
+        p.project.type == ProjectSourceType.GITHUB &&
+        p.stars < 10)
 
   - name: risky-oss-licenses
     description: Risky OSS license was detected
     check: RULE_CHECK_LICENSE
     value: |
-      pkg.licenses.exists(l, l.license_id in ['GPL-2.0', 'GPL-2.0-only', 'GPL-3.0', 'GPL-3.0-only', 'BSD-3-Clause OR GPL-2.0'])
+      pkg.licenses.exists(l, l.license_id in [
+        'GPL-2.0', 'GPL-2.0-only', 'GPL-3.0', 'GPL-3.0-only',
+        'BSD-3-Clause OR GPL-2.0'
+      ])
 
   - name: unmaintained-component
     description: Component appears to be unmaintained
     check: RULE_CHECK_MAINTENANCE
     value: |
-      pkg.projects.exists(p, p.scorecard.checks.exists(c, c.name == "Maintained" && c.score == 0.0))
+      pkg.projects.exists(p,
+        p.scorecard.checks.exists(c,
+          c.name == "Maintained" && c.score == 0.0))
 
   - name: malicious-component
     description: Malicious (malware) component detected
@@ -40,4 +47,6 @@ rules:
     description: Component release pipeline appear to use dangerous workflows
     check: RULE_CHECK_PROJECT_SCORECARD
     value: |
-      pkg.projects.exists(p, p.scorecard.checks.exists(c, c.name == "Dangerous-Workflow" && c.score == 0.0))
+      pkg.projects.exists(p,
+        p.scorecard.checks.exists(c,
+          c.name == "Dangerous-Workflow" && c.score == 0.0))
