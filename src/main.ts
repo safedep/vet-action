@@ -82,7 +82,8 @@ export async function run(): Promise<void> {
     )
 
     core.debug(
-      `Running vet with policy: ${policyV2.length !== 0 ? policyV2 : policy.length !== 0 ? policy : '<default policy v2>'}  cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`
+      // log which policy file is used, policyV2 takes priority in logging then v1
+      `Running vet with policy: ${policyV2.length !== 0 ? policyV2 : policy.length !== 0 ? policy : '<default policy v1>'}  cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`
     )
 
     const vet = new Vet({
