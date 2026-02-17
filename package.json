@@ -25,7 +25,7 @@
   },
   "scripts": {
     "prepare": "husky install",
-    "bundle": "npm run format:write && npm run package && cp ./data/policy.yml ./dist/policy.yml",
+    "bundle": "npm run format:write && npm run package && cp ./data/policy.yml ./dist/policy.yml && cp ./data/policy-v2.yml ./dist/policy-v2.yml",
     "ci-test": "vitest run",
     "coverage": "vitest run --coverage",
     "format:write": "prettier --write **/*.ts",

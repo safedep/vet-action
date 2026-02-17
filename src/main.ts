@@ -14,6 +14,11 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const policyV2: string = core.getInput('policy-v2', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const cloudMode: boolean = core.getBooleanInput('cloud', {
       required: false
     })
@@ -79,6 +84,8 @@ export async function run(): Promise<void> {
     core.debug(
       `Running vet with policy: ${
         policy.length === 0 ? '<default>' : policy
+      } policyV2: ${
+        policyV2.length === 0 ? '<default>' : policyV2
       } cloudMode: ${cloudMode} version: ${
         version.length === 0 ? '<latest>' : version
       }`
@@ -88,6 +95,7 @@ export async function run(): Promise<void> {
       apiKey: cloudKey,
       tenant: cloudTenant,
       policy,
+      policyV2,
       version,
       cloudMode,
       timeout,

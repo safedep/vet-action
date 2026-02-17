@@ -1,8 +1,24 @@
 import path from 'node:path'
 
+// eslint-disable-next-line no-shadow
+export enum VetPolicyVersion {
+  V1 = 'v1',
+  V2 = 'v2'
+}
+
 export function getDefaultVetPolicyFilePath(): string {
   const currentFilePath = __filename
   const policyFilePath = path.join(path.dirname(currentFilePath), 'policy.yml')
+
+  return policyFilePath
+}
+
+export function getDefaultVetPolicyV2FilePath(): string {
+  const currentFilePath = __filename
+  const policyFilePath = path.join(
+    path.dirname(currentFilePath),
+    'policy-v2.yml'
+  )
 
   return policyFilePath
 }
