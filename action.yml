@@ -1,19 +1,18 @@
 name: SafeDep
-description:
-  Protect against vulnerable and malicious Open Source Software (OSS)
+description: Protect against vulnerable and malicious Open Source Software (OSS)
   dependencies using policy as code based guardrails.
-author: 'SafeDep'
+author: "SafeDep"
 
 branding:
-  icon: 'shield'
-  color: 'green'
+  icon: "shield"
+  color: "green"
 
 inputs:
   policy:
     description: Path to policy file, default policy will be used when not given policy or policy-v2
     required: false
   policy-v2:
-    description: Path to policy-v2 file 
+    description: Path to policy-v2 file
     required: false
   cloud:
     description: Synchronize configuration, policy and report with SafeDep cloud
@@ -26,8 +25,7 @@ inputs:
     description: Tenant ID to use for synchronizing report with SafeDep cloud
     required: false
   version:
-    description:
-      vet version to use for the scan. Defaults to using latest release
+    description: vet version to use for the scan. Defaults to using latest release
     required: false
   exception-file:
     description: Path to exception file
