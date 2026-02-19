@@ -8,6 +8,7 @@ import path from 'path'
 import { createGitHubCommentsProxyServiceClient } from './rpc'
 import {
   getDefaultVetPolicyFilePath,
+  VetPolicyVersion,
   getTempFilePath,
   isGithubRunnerDebug,
   isFilePathMatches,
@@ -27,6 +28,7 @@ interface VetConfig {
   apiKey?: string
   tenant?: string
   policy?: string
+  policyV2?: string
   cloudMode?: boolean
   version?: string
   pullRequestNumber?: number
@@ -112,13 +114,15 @@ export class Vet {
     const vetSarifReportDir = getTempFilePath()
     const vetSarifReportPath = path.join(vetSarifReportDir, 'vet.sarif')
     const vetMarkdownSummaryReportPath = getTempFilePath()
-    const policyFilePath = this.getPolicyFilePath()
+    const policyInfo = this.getPolicyFileInfo()
 
     if (!fs.existsSync(vetSarifReportDir)) {
       fs.mkdirSync(vetSarifReportDir, { recursive: true })
     }
 
-    core.info(`Using policy from path: ${policyFilePath}`)
+    core.info(
+      `Using policy from path: ${policyInfo.path} (version: ${policyInfo.version})`
+    )
 
     const vetFinalScanArgs = [
       'scan',
@@ -127,9 +131,15 @@ export class Vet {
       vetSarifReportPath,
       '--report-markdown-summary',
       vetMarkdownSummaryReportPath,
-      '--filter-suite',
-      policyFilePath
+      policyInfo.version === VetPolicyVersion.V1
+        ? '--filter-suite'
+        : '--filter-v2-suite',
+      policyInfo.path
     ]
+
+    if (policyInfo.version === VetPolicyVersion.V2) {
+      vetFinalScanArgs.push('--insights-v2')
+    }
 
     if (this.config.cloudMode) {
       this.applyCloudConfig(vetFinalScanArgs)
@@ -342,9 +352,11 @@ export class Vet {
     // Run vet to scan changed packages only
     const vetMarkdownReportPath = getTempFilePath()
     const vetSarifReportPath = getTempFilePath()
-    const policyFilePath = this.getPolicyFilePath()
+    const policyInfo = this.getPolicyFileInfo()
 
-    core.info(`Using default policy from path: ${policyFilePath}`)
+    core.info(
+      `Using policy from path: ${policyInfo.path} (version: ${policyInfo.version})`
+    )
 
     const vetFinalScanArgs = [
       'scan',
@@ -356,11 +368,17 @@ export class Vet {
       vetMarkdownReportPath,
       '--report-sarif',
       vetSarifReportPath,
-      '--filter-suite',
-      policyFilePath,
+      policyInfo.version === VetPolicyVersion.V1
+        ? '--filter-suite'
+        : '--filter-v2-suite',
+      policyInfo.path,
       '--filter-fail',
       '--fail-fast'
     ]
+
+    if (policyInfo.version === VetPolicyVersion.V2) {
+      vetFinalScanArgs.push('--insights-v2')
+    }
 
     // Check if exceptionsFile is provided
     if (this.config.exceptionFile) {
@@ -646,12 +664,22 @@ export class Vet {
     return supportedLockfiles().includes(baseFileName)
   }
 
-  private getPolicyFilePath(): string {
-    if (this.config.policy) {
-      return this.config.policy
+  // getPolicyFileInfo retuns the appropriate policy file path and version
+  private getPolicyFileInfo(): { path: string; version: VetPolicyVersion } {
+    // priority: policyV2 > policy > default
+    if (this.config.policyV2) {
+      return { path: this.config.policyV2, version: VetPolicyVersion.V2 }
     }
 
-    return getDefaultVetPolicyFilePath()
+    if (this.config.policy) {
+      return { path: this.config.policy, version: VetPolicyVersion.V1 }
+    }
+
+    return {
+      // Default is still policy v1 file
+      path: getDefaultVetPolicyFilePath(),
+      version: VetPolicyVersion.V1
+    }
   }
   private applyScanExclusions(args: string[]): void {
     if (

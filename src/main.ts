@@ -14,6 +14,11 @@ export async function run(): Promise<void> {
       trimWhitespace: true
     })
 
+    const policyV2: string = core.getInput('policy-v2', {
+      required: false,
+      trimWhitespace: true
+    })
+
     const cloudMode: boolean = core.getBooleanInput('cloud', {
       required: false
     })
@@ -77,17 +82,15 @@ export async function run(): Promise<void> {
     )
 
     core.debug(
-      `Running vet with policy: ${
-        policy.length === 0 ? '<default>' : policy
-      } cloudMode: ${cloudMode} version: ${
-        version.length === 0 ? '<latest>' : version
-      }`
+      // log which policy file is used, policyV2 takes priority in logging then v1
+      `Running vet with policy: ${policyV2.length !== 0 ? policyV2 : policy.length !== 0 ? policy : '<default policy v1>'}  cloudMode: ${cloudMode} version: ${version.length === 0 ? '<latest>' : version}`
     )
 
     const vet = new Vet({
       apiKey: cloudKey,
       tenant: cloudTenant,
       policy,
+      policyV2,
       version,
       cloudMode,
       timeout,

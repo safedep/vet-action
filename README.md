@@ -134,7 +134,8 @@ guide on getting the required information for activating cloud integration.
 
 | GitHub Action Input     | Example Value                         | Notes                                                                                  |
 | ----------------------- | ------------------------------------- | -------------------------------------------------------------------------------------- |
-| `policy`                | `policies/sample.yml`                 | Path to `vet` YAML policy file (filter suite)                                          |
+| `policy`                | `data/policy.yml`                     | Path to `vet` YAML policy file (filter suite)                                          |
+| `policy-v2`             | `data/policy-v2.yml`                  | Path to `vet` YAML policy-v2 file (filter suite v2)                                    |
 | `exception-file`        | `config/exceptions.yml`               | Path to `vet` exception YAML file                                                      |
 | `trusted-registries`    | `https://r1.org, https://r2.org`      | `,` separated string of registry base URLs                                             |
 | `timeout`               | `300`                                 | Max time in seconds to wait for external services                                      |
