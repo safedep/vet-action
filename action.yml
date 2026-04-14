@@ -77,5 +77,5 @@ outputs:
     description: Path to SARIF report for uploading to Github Security tab
 
 runs:
-  using: node20
+  using: node24
   main: dist/index.js
