@@ -38,7 +38,9 @@ jobs:
 
       - name: Lint Codebase
         id: super-linter
-        uses: super-linter/super-linter/slim@v7.3.0
+        # v8+ required for actionlint node24 support
+        # https://github.com/rhysd/actionlint/releases/tag/v1.7.8
+        uses: super-linter/super-linter/slim@v8.6.0
 
         env:
           DEFAULT_BRANCH: main
