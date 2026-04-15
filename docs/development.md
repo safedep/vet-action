@@ -159,7 +159,7 @@ action in the same repository.
 steps:
   - name: Checkout
     id: checkout
-    uses: actions/checkout@v4
+    uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6
 
   - name: Test Local Action
     id: test-action
@@ -190,7 +190,7 @@ hash.
 steps:
   - name: Checkout
     id: checkout
-    uses: actions/checkout@v4
+    uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd #v6
 
   - name: Test Local Action
     id: test-action
