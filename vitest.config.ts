@@ -8,7 +8,8 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['json-summary', 'text', 'lcov'],
-      include: ['./src/**']
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts']
     },
     testTimeout: 10000,
     globals: true
