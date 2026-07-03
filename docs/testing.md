@@ -26,7 +26,7 @@ excluded).
 
 ## Test layout
 
-```
+```text
 __tests__/
 ├── helpers/
 │   ├── mocks.ts        # reusable GitHub Actions / API / vet binary mocks
@@ -80,15 +80,20 @@ object so tests can set `context.payload.pull_request` (see
 
 ### Helper reference
 
-| Helper                               | Purpose                                                                                           |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `stubGitHubActionsEnv(overrides?)`   | `vi.stubEnv` for the standard `GITHUB_*` / `RUNNER_TEMP` runner variables.                        |
-| `createMockOctokit()`                | Octokit with every REST endpoint the action calls stubbed as `vi.fn()`.                           |
-| `createMockCommentsProxyClient()`    | Mock GitHub Comments Proxy client (forked-PR comment fallback).                                   |
-| `createTestVet(config?, deps?)`      | Builds a `Vet`, injects the mock Octokit + proxy client, returns `{ vet, octokit, proxyClient }`. |
-| `stubVetBinaryLifecycle(vet, opts?)` | Stubs release lookup, download, extraction and `runVet` so `run()` works without a binary.        |
-| `createMockCoreSummary()`            | Wires a chainable mock onto `core.summary` and returns it.                                        |
-| `stubPullRequestContext(pr?)`        | Sets `context.payload.pull_request` for forked-PR detection.                                      |
+- `stubGitHubActionsEnv(overrides?)` — `vi.stubEnv` for the standard `GITHUB_*`
+  / `RUNNER_TEMP` runner variables.
+- `createMockOctokit()` — Octokit with every REST endpoint the action calls
+  stubbed as `vi.fn()`.
+- `createMockCommentsProxyClient()` — mock GitHub Comments Proxy client (the
+  forked-PR comment fallback).
+- `createTestVet(config?, deps?)` — builds a `Vet` with the mock Octokit and
+  proxy client injected; returns `{ vet, octokit, proxyClient }`.
+- `stubVetBinaryLifecycle(vet, opts?)` — stubs release lookup, download,
+  extraction and `runVet` so `run()` works without a binary.
+- `createMockCoreSummary()` — wires a chainable mock onto `core.summary` and
+  returns it.
+- `stubPullRequestContext(pr?)` — sets `context.payload.pull_request` for
+  forked-PR detection.
 
 ### Example: a new PR-handling test
 
