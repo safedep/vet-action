@@ -21,7 +21,8 @@ npm run ci-test
 npm run coverage
 ```
 
-Coverage is collected with the `v8` provider and is scoped to `./src/**`.
+Coverage is collected with the `v8` provider over `src/**/*.ts` (test files
+excluded).
 
 ## Test layout
 
